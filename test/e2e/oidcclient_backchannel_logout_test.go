@@ -149,8 +149,7 @@ metadata:
 spec:
   containers:
   - name: receiver
-    # renovate: datasource=docker depName=docker.io/library/python versioning=docker
-    image: docker.io/library/python:3.14.8-alpine
+    image: mirror.gcr.io/library/python:alpine
     command: ["python", "-u", "-c"]
     args:
     - |
