@@ -43,6 +43,13 @@
       "separateMinorPatch": true
     },
     {
+      "description": "Skip go docker image digest updates",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["docker.io/library/golang"],
+      "matchUpdateTypes": ["digest"],
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["kubernetes/kubernetes", "/^k8s\\.io//", "/^sigs\\.k8s\\.io//"],
       "groupName": "kubernetes"
     },
