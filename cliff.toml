@@ -34,6 +34,8 @@ split_commits = false
 commit_parsers = [
   # The release workflow's own version-bump commit.
   { message = "^chore\\(release\\)", skip = true },
+  # Renovate labels upstream pocket-id bumps; give them their own section.
+  { field = "remote.pr_labels", pattern = "pocket-id-upgrade", group = "<!-- 6 -->Pocket ID" },
   { message = "\\(deps\\)", group = "<!-- 5 -->Dependencies" },
   { message = "^feat", group = "<!-- 0 -->Features" },
   { message = "^refactor", group = "<!-- 1 -->Refactor" },
