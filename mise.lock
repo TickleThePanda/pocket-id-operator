@@ -62,6 +62,11 @@ url = "https://dl.google.com/go/go1.27.3.linux-amd64.tar.gz"
 checksum = "sha256:dd3908cf20959d798c1e06ebe5b72213f0505ce01373b40ce3110975a6cd99c2"
 url = "https://dl.google.com/go/go1.27.3.darwin-arm64.tar.gz"
 
+[[tools."go:github.com/elastic/crd-ref-docs"]]
+version = "0.3.0"
+backend = "go:github.com/elastic/crd-ref-docs"
+specifiers = ["v0.3.0"]
+
 [[tools."go:github.com/onsi/ginkgo/v2/ginkgo"]]
 version = "2.33.1"
 backend = "go:github.com/onsi/ginkgo/v2/ginkgo"
@@ -192,6 +197,35 @@ url = "https://github.com/evilmartians/lefthook/releases/download/v2.2.2/lefthoo
 url_api = "https://api.github.com/repos/evilmartians/lefthook/releases/assets/636518817"
 provenance = "github-attestations"
 
+[[tools."pypi:zensical"]]
+version = "0.0.71"
+backend = "pypi:zensical"
+specifiers = ["0.0.71"]
+uv = { path = ".mise/locks/pypi-zensical/0.0.71~e0d36179", digest = "sha256:9507d95709f6c6edcd1e4e19eb0eff686bc1686bdae7955b59be4e69bbc74e76" }
+
+[tools."pypi:zensical".options]
+python = "3.14"
+
+[[tools.python]]
+version = "3.14.8"
+backend = "core:python"
+specifiers = ["3.14"]
+
+[tools.python."platforms.linux-arm64"]
+checksum = "sha256:d8ae14f303d3971431184cf423ae5467202de2bc19bf6491a490250b87647d4b"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261013/cpython-3.14.8+20261013-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.linux-x64"]
+checksum = "sha256:d8faa1b588506b9e3e5a3f57807bb056d534a1641a6b10d15b6ea3f0b413b960"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261013/cpython-3.14.8+20261013-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:994adadc202c5df0b4570192cc9a70e3f2c131e512f4a125c56efa8562f44b28"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20261013/cpython-3.14.8+20261013-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
 [[tools.sd]]
 version = "1.1.0"
 backend = "aqua:chmln/sd"
@@ -231,6 +265,29 @@ url_api = "https://api.github.com/repos/kubernetes-sigs/controller-runtime/relea
 checksum = "sha256:7c95d67911e157d2caa02f599bcf9321b4e759d2f008749b4d03ed9d3e6a8c69"
 url = "https://github.com/kubernetes-sigs/controller-runtime/releases/download/v0.25.2/setup-envtest-darwin-arm64"
 url_api = "https://api.github.com/repos/kubernetes-sigs/controller-runtime/releases/assets/603348936"
+
+[[tools.uv]]
+version = "0.13.1"
+backend = "aqua:astral-sh/uv"
+specifiers = ["0.13.1"]
+
+[tools.uv."platforms.linux-arm64"]
+checksum = "sha256:9041c73c99fdc5892cf128140beb354eca9231d502068cc36e6cb53a8e59ad14"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/639312990"
+provenance = "github-attestations"
+
+[tools.uv."platforms.linux-x64"]
+checksum = "sha256:eadd9d27c134ab5ac1ffd4473b97a741407f3ea238288f03121fc4deddf90220"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-unknown-linux-gnu.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/639313223"
+provenance = "github-attestations"
+
+[tools.uv."platforms.macos-arm64"]
+checksum = "sha256:cfe454573412ff7380d15fc7dae5997ab53ffce72fce0a78e91ddbc84001acd2"
+url = "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/astral-sh/uv/releases/assets/639312976"
+provenance = "github-attestations"
 
 [[tools.yq]]
 version = "4.54.1"

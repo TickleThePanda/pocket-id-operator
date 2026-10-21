@@ -51,12 +51,8 @@ spec:
             properties:
               cimdAccess:
                 description: |-
-                  CIMDAccess grants every client registered through an OAuth Client ID Metadata
-                  Document access to this API, so dynamically-registered clients do not each need an
-                  explicit grant. Defaults to true when any permission sets cimdAccess. Set it to true
-                  explicitly to grant access with no permissions, which is what a client requesting a
-                  resource without any scopes needs, or to false to revoke access while keeping the
-                  per-permission marks.
+                  CIMDAccess grants every client registered through an OAuth Client ID Metadata Document access to this API.
+                  See the documentation for a more in-depth breakdown of the configuration https://pocket-id-operator.pages.dev/guides/pocketidapi/#granting-metadata-document-clients
                 type: boolean
               instanceSelector:
                 description: |-
@@ -107,25 +103,21 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
               name:
-                description: |-
-                  Name of the API to create in Pocket ID.
-                  If omitted, defaults to metadata.name of the API resource.
+                description: Name of the API to create in Pocket ID. If omitted, defaults
+                  to metadata.name of the API resource.
                 maxLength: 255
                 minLength: 2
                 type: string
               permissions:
-                description: |-
-                  Permissions are the scoped permissions offered by this API. The operator is
-                  the sole owner of the API: the permission set in Pocket-ID is reconciled to
-                  exactly this list, so permissions added out-of-band are removed.
+                description: Permissions are the scoped permissions offered by this
+                  API.
                 items:
                   description: APIPermission defines a single scoped permission offered
                     by an API.
                   properties:
                     cimdAccess:
-                      description: |-
-                        CIMDAccess lets clients registered through a Client ID Metadata Document request
-                        this permission. Only takes effect while spec.cimdAccess is true.
+                      description: CIMDAccess lets clients registered through a Client
+                        ID Metadata Document request this permission.
                       type: boolean
                     description:
                       description: Description optionally explains what the permission
@@ -135,8 +127,7 @@ spec:
                     key:
                       description: |-
                         Key is the permission identifier requested as a token scope, e.g. "read:orders".
-                        It must be a valid RFC 6749 scope token: printable ASCII with no space, double
-                        quote, or backslash. Reserved OIDC scope/claim names are rejected at the spec level.
+                        It must be a valid RFC 6749 scope token: printable ASCII with no space, double quote, or backslash. Reserved OIDC scope/claim names are rejected.
                       maxLength: 255
                       minLength: 1
                       pattern: ^[\x21\x23-\x5B\x5D-\x7E]+$
@@ -156,10 +147,9 @@ spec:
                 - key
                 x-kubernetes-list-type: map
               resource:
-                description: |-
-                  Resource is the audience identifier for tokens issued against this API
-                  (typically a URI). It is the permanent identifier used to adopt an existing
-                  API and is immutable once set.
+                description: Resource is the audience identifier for tokens issued
+                  against this API typically a URI). It is the permanent identifier
+                  used to adopt an existing API and is immutable once set.
                 maxLength: 255
                 minLength: 1
                 type: string
@@ -309,7 +299,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PocketIDInstance is the Schema for the pocketidinstances API
+        description: PocketIDInstance is the Schema for the pocketidinstances API.
         properties:
           apiVersion:
             description: |-
@@ -329,7 +319,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: spec defines the desired state of PocketIDInstance
+            description: spec defines the desired state of PocketIDInstance.
             properties:
               OIDCClientRotation:
                 description: OIDCClientRotation configures instance-wide throttling
@@ -338,7 +328,7 @@ spec:
                   minSpacing:
                     description: |-
                       MinSpacing is the minimum time between any two client secret rotations on this instance.
-                      Prevents thundering-herd when many clients become due simultaneously.
+                      Prevents a thundering herd when many clients become due simultaneously.
                     type: string
                     x-kubernetes-validations:
                     - message: minSpacing must be a positive duration
@@ -347,34 +337,35 @@ spec:
                 - minSpacing
                 type: object
               analyticsDisabled:
-                default: false
-                description: Disable anonymous 24-hour usage analytics heartbeat
+                description: |-
+                  Disable anonymous usage analytics.
+                  Sets ANALYTICS_DISABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: boolean
               annotations:
                 additionalProperties:
                   type: string
-                description: Additional annotations to add to the workload and pod
+                description: Additional annotations to add to the workload and pod.
                 type: object
               appUrl:
                 description: |-
-                  External URL Pocket-id can be reached at
-                  See the official documentation for APP_URL
+                  Public URL of Pocket-ID.
+                  Sets APP_URL. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: string
               auditLogRetentionDays:
-                description: Audit log retention in days
+                description: |-
+                  Audit log retention in days.
+                  Sets AUDIT_LOG_RETENTION_DAYS. See https://pocket-id.org/docs/configuration/environment-variables.
                 format: int32
                 type: integer
               cimdUrlAllowlist:
                 description: |-
-                  CIMDURLAllowlist restricts which https URLs may be used as OAuth Client ID Metadata
-                  Documents. Entries are callback-URL patterns (wildcards allowed). A non-empty list
-                  enables CIMD; leaving it empty keeps the feature off.
-                  The operator automatically sets UI_CONFIG_DISABLED=true when this field is set.
+                  Allowed OAuth Client ID Metadata Document URLs. The operator sets UI_CONFIG_DISABLED=true when this field is set.
+                  JSON-encoded into CIMD_URL_ALLOWLIST. See https://pocket-id.org/docs/configuration/environment-variables.
                 items:
                   type: string
                 type: array
               containerSecurityContext:
-                description: Container security context
+                description: Container security context.
                 properties:
                   allowPrivilegeEscalation:
                     description: |-
@@ -564,16 +555,14 @@ spec:
                 type: object
               databaseUrl:
                 description: |-
-                  URL to access database at
-                  See the official documentation for DB_CONNECTION_STRING
-                  For sqlite only add the filepath e.g. "/app/data/pocket-id.db"
-                  Uses application default (/app/data/pocket-id.db) if empty
+                  Database connection string.
+                  Sets DB_CONNECTION_STRING. See https://pocket-id.org/docs/configuration/environment-variables.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                    description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                     properties:
                       configMapKeyRef:
                         description: Selects a key of a ConfigMap.
@@ -706,51 +695,52 @@ spec:
                 type: object
               deploymentType:
                 default: Deployment
-                description: |-
-                  Kind of workload to create, Deployment or StatefulSet
-                  Defaults to Deployment (immutable after creation)
+                description: 'Kind of workload to create: Deployment or StatefulSet.
+                  Defaults to Deployment and is immutable after creation.'
                 enum:
                 - Deployment
                 - StatefulSet
                 type: string
               emailNotifications:
-                description: |-
-                  Email notification settings
-                  Only relevant when SMTP is configured
+                description: Email notification settings. Requires smtp. The operator
+                  sets UI_CONFIG_DISABLED=true when this section is configured.
                 properties:
                   apiKeyExpiration:
-                    default: false
-                    description: Notify users of expiring API keys
+                    description: |-
+                      API key expiration notifications.
+                      Sets EMAIL_API_KEY_EXPIRATION_ENABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   loginNotification:
-                    default: false
-                    description: Notify users of logins from new devices
+                    description: |-
+                      New-device login notifications.
+                      Sets EMAIL_LOGIN_NOTIFICATION_ENABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   oneTimeAccessAsAdmin:
-                    default: false
-                    description: Allow admins to send one-time login access codes
+                    description: |-
+                      Admin-sent login codes.
+                      Sets EMAIL_ONE_TIME_ACCESS_AS_ADMIN_ENABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   oneTimeAccessAsUnauthenticated:
-                    default: false
-                    description: Allow email-based login bypass for unauthenticated
-                      users (reduced security)
+                    description: |-
+                      Email login codes for unauthenticated users.
+                      Sets EMAIL_ONE_TIME_ACCESS_AS_UNAUTHENTICATED_ENABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   verification:
-                    default: false
-                    description: Send verification emails on signup or email change
+                    description: |-
+                      Email verification.
+                      Sets EMAIL_VERIFICATION_ENABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                 type: object
               encryptionKey:
                 description: |-
-                  Encryption Key
-                  Required when deploying an instance; omit for external instances.
-                  See the official documentation for ENCRYPTION_KEY environment variable
+                  Encryption key. Required when deploying an instance; omit for external instances.
+                  Sets ENCRYPTION_KEY. See https://pocket-id.org/docs/configuration/environment-variables.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                    description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                     properties:
                       configMapKeyRef:
                         description: Selects a key of a ConfigMap.
@@ -882,9 +872,8 @@ spec:
                     type: object
                 type: object
               env:
-                description: |-
-                  Additional environment variables to set
-                  Uses k8s env var syntax (includes secretKeyRef, configMapKeyRef, etc.)
+                description: Additional environment variables to set. Uses Kubernetes
+                  env var syntax (secretKeyRef, configMapKeyRef, etc.).
                 items:
                   description: EnvVar represents an environment variable present in
                     a Container.
@@ -1044,15 +1033,13 @@ spec:
                 type: array
               external:
                 description: |-
-                  External adopts an existing Pocket-ID instead of deploying one. When set, no
-                  workload/service/PVC is created and the operator manages OIDC clients, users,
-                  and groups on that instance via its API. Mutually exclusive with encryptionKey
-                  and the other deployment fields.
+                  External adopts an existing Pocket-ID instead of deploying one. When set, no workload/service/PVC is created and the operator manages OIDC clients, users, and groups on that instance via its API.
+                  Mutually exclusive with encryptionKey and the other deployment fields.
                 properties:
                   apiKeySecretRef:
-                    description: |-
-                      APIKeySecretRef references a Secret key holding a Pocket-ID API key with
-                      permission to manage clients, users, and groups on the instance.
+                    description: APIKeySecretRef references a Secret key holding a
+                      Pocket-ID API key with permission to manage clients, users,
+                      and groups on the instance.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -1086,29 +1073,27 @@ spec:
                 type: object
               fileBackend:
                 description: |-
-                  File storage backend
-                  Automatically set to "s3" when s3 config is present
-                enum:
-                - filesystem
-                - s3
-                - database
+                  File storage backend. Automatically set to "s3" when s3 config is present.
+                  Sets FILE_BACKEND. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: string
               geoip:
-                description: GeoIP/MaxMind integration for audit log geolocation
+                description: GeoIP/MaxMind integration for audit log geolocation.
                 properties:
                   dbPath:
-                    description: Custom path to the GeoLite2 database file
+                    description: |-
+                      GeoLite2 database path.
+                      Sets GEOLITE_DB_PATH. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   dbUrl:
                     description: |-
-                      Custom URL to download the GeoLite2 database from
-                      May contain credentials so supports secretKeyRef
+                      GeoLite2 database download URL.
+                      Sets GEOLITE_DB_URL. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -1240,13 +1225,15 @@ spec:
                         type: object
                     type: object
                   maxmindLicenseKey:
-                    description: MaxMind license key for downloading GeoLite2 database
+                    description: |-
+                      MaxMind license key.
+                      Sets MAXMIND_LICENSE_KEY. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -1380,80 +1367,105 @@ spec:
                 type: object
               hostUsers:
                 default: true
-                description: |-
-                  HostUsers controls whether the container's user namespace is separate from the host
-                  Defaults to true
+                description: 'Deprecated: use spec.podTemplate.hostUsers instead.'
                 type: boolean
               image:
-                description: |-
-                  Container image to run. When empty the operator supplies the latest distroless
-                  version tested against this release.
+                description: Container image to run. When unset, the operator uses
+                  the latest version tested against this release.
                 type: string
               internalAppUrl:
-                description: Internal base URL for OIDC .well-known endpoints (for
-                  split-horizon DNS)
+                description: |-
+                  Internal base URL for split-horizon DNS.
+                  Sets INTERNAL_APP_URL. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: string
               labels:
                 additionalProperties:
                   type: string
-                description: Additional labels to add to the workload and pod
+                description: Additional labels to add to the workload and pod.
                 type: object
               ldap:
-                description: |-
-                  LDAP authentication configuration
-                  When present, LDAP is automatically enabled
+                description: LDAP authentication. When present, the operator sets
+                  LDAP_ENABLED=true and UI_CONFIG_DISABLED=true.
                 properties:
                   adminGroupName:
-                    description: LDAP group name that grants admin privileges
+                    description: |-
+                      Group that grants admin privileges.
+                      Sets LDAP_ADMIN_GROUP_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   attributeMapping:
-                    description: LDAP attribute mappings
+                    description: LDAP attribute mappings.
                     properties:
                       groupMember:
-                        description: LDAP attribute for group membership
+                        description: |-
+                          Group membership attribute.
+                          Sets LDAP_ATTRIBUTE_GROUP_MEMBER. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       groupName:
-                        description: LDAP attribute for group name
+                        description: |-
+                          Group name attribute.
+                          Sets LDAP_ATTRIBUTE_GROUP_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       groupUniqueIdentifier:
-                        description: LDAP attribute for immutable group identifier
+                        description: |-
+                          Group unique identifier attribute.
+                          Sets LDAP_ATTRIBUTE_GROUP_UNIQUE_IDENTIFIER. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userDisplayName:
-                        description: LDAP attribute for display name
+                        description: |-
+                          Display name attribute.
+                          Sets LDAP_ATTRIBUTE_USER_DISPLAY_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userEmail:
-                        description: LDAP attribute for email
+                        description: |-
+                          Email attribute.
+                          Sets LDAP_ATTRIBUTE_USER_EMAIL. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userFirstName:
-                        description: LDAP attribute for first name
+                        description: |-
+                          First name attribute.
+                          Sets LDAP_ATTRIBUTE_USER_FIRST_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userLastName:
-                        description: LDAP attribute for last name
+                        description: |-
+                          Last name attribute.
+                          Sets LDAP_ATTRIBUTE_USER_LAST_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userProfilePicture:
-                        description: LDAP attribute for profile picture
+                        description: |-
+                          Profile picture attribute.
+                          Sets LDAP_ATTRIBUTE_USER_PROFILE_PICTURE. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userUniqueIdentifier:
-                        description: LDAP attribute for immutable user identifier
+                        description: |-
+                          User unique identifier attribute.
+                          Sets LDAP_ATTRIBUTE_USER_UNIQUE_IDENTIFIER. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                       userUsername:
-                        description: LDAP attribute for username
+                        description: |-
+                          Username attribute.
+                          Sets LDAP_ATTRIBUTE_USER_USERNAME. See https://pocket-id.org/docs/configuration/environment-variables.
                         type: string
                     type: object
                   base:
-                    description: LDAP search base DN
+                    description: |-
+                      Search base DN.
+                      Sets LDAP_BASE. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   bindDN:
-                    description: LDAP bind distinguished name
+                    description: |-
+                      Bind DN.
+                      Sets LDAP_BIND_DN. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   bindPassword:
-                    description: LDAP bind password
+                    description: |-
+                      Bind password.
+                      Sets LDAP_BIND_PASSWORD. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -1585,21 +1597,29 @@ spec:
                         type: object
                     type: object
                   skipCertVerify:
-                    default: false
-                    description: Skip LDAP certificate verification
+                    description: |-
+                      Skip LDAP certificate verification.
+                      Sets LDAP_SKIP_CERT_VERIFY. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   softDeleteUsers:
-                    default: false
-                    description: Disable removed LDAP users instead of deleting them
+                    description: |-
+                      Disable removed users instead of deleting them.
+                      Sets LDAP_SOFT_DELETE_USERS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   url:
-                    description: LDAP server connection URL (e.g. ldaps://ldap.example.com)
+                    description: |-
+                      LDAP server URL.
+                      Sets LDAP_URL. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   userGroupSearchFilter:
-                    description: LDAP group search filter
+                    description: |-
+                      Group search filter.
+                      Sets LDAP_USER_GROUP_SEARCH_FILTER. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   userSearchFilter:
-                    description: LDAP user search filter
+                    description: |-
+                      User search filter.
+                      Sets LDAP_USER_SEARCH_FILTER. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                 required:
                 - base
@@ -1608,7 +1628,7 @@ spec:
                 - url
                 type: object
               livenessProbe:
-                description: Liveness probe configuration
+                description: Liveness probe configuration.
                 properties:
                   exec:
                     description: Exec specifies a command to execute in the container.
@@ -1771,44 +1791,41 @@ spec:
                     type: integer
                 type: object
               localIPv6Ranges:
-                description: Custom local IPv6 ranges for audit log IP classification
-                  (comma-separated CIDRs)
+                description: |-
+                  Local IPv6 ranges (comma-separated CIDRs).
+                  Sets LOCAL_IPV6_RANGES. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: string
               logging:
-                description: Logging configuration
+                description: Logging configuration.
                 properties:
                   json:
-                    default: false
-                    description: Output logs as JSON
+                    description: |-
+                      JSON log output.
+                      Sets LOG_JSON. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   level:
-                    description: Log level
-                    enum:
-                    - debug
-                    - info
-                    - warn
-                    - error
+                    description: |-
+                      Log level.
+                      Sets LOG_LEVEL. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   queryArgs:
-                    default: false
                     description: |-
-                      Include SQL query parameter values in traces and in the query logs emitted
-                      at the debug level. These values may contain sensitive data.
+                      Include SQL query arguments in debug logs and traces.
+                      Sets LOG_QUERY_ARGS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                 type: object
               metrics:
-                description: |-
-                  Prometheus metrics configuration
-                  When enabled the operator injects the required OTEL environment variables
-                  and exposes a metrics port on the Service
+                description: Prometheus metrics configuration. When enabled, the operator
+                  injects the required OTEL environment variables and exposes a metrics
+                  port on the Service.
                 properties:
                   enabled:
                     default: false
-                    description: Enables the Prometheus metrics endpoint
+                    description: Enables the Prometheus metrics endpoint.
                     type: boolean
                   port:
                     default: 9464
-                    description: Port for the Prometheus metrics endpoint
+                    description: Port for the Prometheus metrics endpoint.
                     format: int32
                     type: integer
                 required:
@@ -1816,28 +1833,26 @@ spec:
                 type: object
               persistence:
                 description: |-
-                  Configures persistence for Pocket-ID
-                  Note: Pocket-ID can be run statelessly if using Postgres as a file and db backend
-                  If not enabled mounts an emptydir instead
+                  Configures persistence for Pocket-ID. Pocket-ID can be run statelessly; see https://pocket-id-operator.pages.dev/examples/pocketidinstance/#stateless-deployment.
+                  If not enabled, an emptyDir is mounted instead.
                 properties:
                   accessModes:
                     default:
                     - ReadWriteOnce
-                    description: AccessModes for the PVC
+                    description: AccessModes for the PVC.
                     items:
                       type: string
                     type: array
                   enabled:
                     default: false
-                    description: Enables mounting a persistent volume
+                    description: Enables mounting a persistent volume.
                     type: boolean
                   existingClaim:
-                    description: Name of an existing, externally-managed PVC to mount
+                    description: Name of an existing, externally-managed PVC to mount.
                     type: string
                   extraVolumeMounts:
-                    description: |-
-                      Extra volume mounts to add to the pocket-id container.
-                      Useful for mounting volumes defined in spec.podTemplate.
+                    description: Extra volume mounts to add to the pocket-id container.
+                      This is useful for mounting volumes defined in spec.podTemplate.
                     items:
                       description: VolumeMount describes a mounting of a Volume within
                         a container.
@@ -1913,27 +1928,27 @@ spec:
                     type: array
                   path:
                     default: /app/data
-                    description: Path where the data volume is mounted in the container
+                    description: Path where the data volume is mounted in the container.
                     type: string
                   size:
                     anyOf:
                     - type: integer
                     - type: string
                     default: 1Gi
-                    description: Size of the claim to dynamically provision
+                    description: Size of the claim to dynamically provision.
                     pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
                     x-kubernetes-int-or-string: true
                   storageClass:
-                    description: Name of storageClass to provision a volume from
+                    description: Name of the StorageClass to provision a volume from.
                     type: string
                   subPath:
-                    description: SubPath within the volume to mount (volumeMount.subPath)
+                    description: SubPath within the volume to mount (volumeMount.subPath).
                     type: string
                 required:
                 - enabled
                 type: object
               podSecurityContext:
-                description: Pod security context
+                description: Pod security context.
                 properties:
                   appArmorProfile:
                     description: |-
@@ -2162,17 +2177,17 @@ spec:
                     type: object
                 type: object
               podTemplate:
-                description: |-
-                  Pod template to merge with the operator-built pod spec.
-                  Operator-managed fields including the pocket-id container always take precedence.
+                description: Pod template to merge with the operator-built pod spec.
+                  Operator-managed fields including the pocket-id container always
+                  take precedence.
                 x-kubernetes-preserve-unknown-fields: true
               rateLimitingDisabled:
-                default: false
-                description: Disable Pocket-ID's built-in rate limiting. Enabled by
-                  default.
+                description: |-
+                  Disable rate limiting. Pocket-ID's rate limits are permissive enough for the operator, so keeping them is recommended.
+                  Sets DISABLE_RATE_LIMITING. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: boolean
               readinessProbe:
-                description: Readiness probe configuration
+                description: Readiness probe configuration.
                 properties:
                   exec:
                     description: Exec specifies a command to execute in the container.
@@ -2335,7 +2350,7 @@ spec:
                     type: integer
                 type: object
               resources:
-                description: Resource requests and limits for the container
+                description: Resource requests and limits for the container.
                 properties:
                   claims:
                     description: |-
@@ -2394,23 +2409,22 @@ spec:
                     type: object
                 type: object
               route:
-                description: |-
-                  HTTPRoute configuration
-                  Creates an HTTPRoute when enabled. Requires Gateway API CRDs to be installed.
+                description: Configures an HTTPRoute when enabled. Requires Gateway
+                  API CRDs to be installed.
                 properties:
                   annotations:
                     additionalProperties:
                       type: string
-                    description: Additional annotations for the HTTPRoute
+                    description: Additional annotations for the HTTPRoute.
                     type: object
                   enabled:
                     default: false
-                    description: Enables creation of an HTTPRoute
+                    description: Enables creation of an HTTPRoute.
                     type: boolean
                   hostnames:
                     description: |-
-                      Hostnames for the route
-                      Will be automatically set to the hostname from spec.appUrl if not specified
+                      Hostnames for the route.
+                      Automatically set to the hostname from spec.appUrl if not specified.
                     items:
                       description: |-
                         Hostname is the fully qualified domain name of a network host. This matches
@@ -2435,14 +2449,14 @@ spec:
                   labels:
                     additionalProperties:
                       type: string
-                    description: Additional labels for the HTTPRoute
+                    description: Additional labels for the HTTPRoute.
                     type: object
                   name:
-                    description: Name override for the HTTPRoute (defaults to instance
-                      name)
+                    description: Name override for the HTTPRoute (defaults to the
+                      instance name).
                     type: string
                   parentRefs:
-                    description: Gateway parent references
+                    description: Gateway parent references.
                     items:
                       description: |-
                         ParentReference identifies an API object (usually a Gateway) that can be considered
@@ -2595,26 +2609,25 @@ spec:
                   template:
                     description: |-
                       Template is merged with the operator-built HTTPRoute spec.
-                      Operator-managed fields (parentRefs, hostnames, and the default backend rule to the
-                      Service) always take precedence.
+                      Operator-managed fields (parentRefs, hostnames, and the default backend rule to the Service) always take precedence.
                     x-kubernetes-preserve-unknown-fields: true
                 required:
                 - enabled
                 - parentRefs
                 type: object
               s3:
-                description: |-
-                  S3 file backend configuration
-                  When present, FILE_BACKEND is automatically set to "s3"
+                description: S3 file backend. When present, the operator sets FILE_BACKEND=s3.
                 properties:
                   accessKeyId:
-                    description: S3 access key ID
+                    description: |-
+                      S3 access key ID.
+                      Sets S3_ACCESS_KEY_ID. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -2746,31 +2759,40 @@ spec:
                         type: object
                     type: object
                   bucket:
-                    description: S3 bucket name
+                    description: |-
+                      S3 bucket name.
+                      Sets S3_BUCKET. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   disableDefaultIntegrityChecks:
-                    default: false
-                    description: Disable default S3 integrity checks
+                    description: |-
+                      Disable default S3 integrity checks.
+                      Sets S3_DISABLE_DEFAULT_INTEGRITY_CHECKS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   endpoint:
-                    description: S3 endpoint URL (for MinIO, Ceph, or other S3-compatible
-                      stores)
+                    description: |-
+                      S3 endpoint URL.
+                      Sets S3_ENDPOINT. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   forcePathStyle:
-                    default: false
-                    description: Force path-style URLs instead of virtual-hosted-style
+                    description: |-
+                      Use path-style S3 URLs.
+                      Sets S3_FORCE_PATH_STYLE. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   region:
-                    description: S3 region
+                    description: |-
+                      S3 region.
+                      Sets S3_REGION. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   secretAccessKey:
-                    description: S3 secret access key
+                    description: |-
+                      S3 secret access key.
+                      Sets S3_SECRET_ACCESS_KEY. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -2910,29 +2932,32 @@ spec:
               serviceTemplate:
                 description: |-
                   ServiceTemplate is merged with the operator-built Service spec.
-                  Operator-managed fields (the selector and the number, protocol and appProtocol of
-                  the http/metrics ports) always take precedence. A nodePort set on those ports is
-                  honoured, as are extra ports and every other field.
+                  Operator-managed fields (the selector and the number, protocol, and appProtocol of the http/metrics ports) always take precedence.
                 x-kubernetes-preserve-unknown-fields: true
               smtp:
-                description: |-
-                  SMTP email transport configuration
-                  When present, SMTP is automatically enabled
+                description: SMTP email transport. When present, the operator sets
+                  SMTP_ENABLED=true and UI_CONFIG_DISABLED=true.
                 properties:
                   from:
-                    description: Sender email address
+                    description: |-
+                      Sender email address.
+                      Sets SMTP_FROM. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   host:
-                    description: SMTP server hostname
+                    description: |-
+                      SMTP server hostname.
+                      Sets SMTP_HOST. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   password:
-                    description: SMTP authentication password
+                    description: |-
+                      SMTP password.
+                      Sets SMTP_PASSWORD. See https://pocket-id.org/docs/configuration/environment-variables.
                     properties:
                       value:
-                        description: Plain text value
+                        description: Plain text value.
                         type: string
                       valueFrom:
-                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef)
+                        description: Source for the value (e.g. secretKeyRef, configMapKeyRef).
                         properties:
                           configMapKeyRef:
                             description: Selects a key of a ConfigMap.
@@ -3064,23 +3089,25 @@ spec:
                         type: object
                     type: object
                   port:
-                    description: SMTP server port
+                    description: |-
+                      SMTP server port.
+                      Sets SMTP_PORT. See https://pocket-id.org/docs/configuration/environment-variables.
                     format: int32
                     type: integer
                   skipCertVerify:
-                    default: false
-                    description: Skip certificate verification (for self-signed certs)
+                    description: |-
+                      Skip SMTP certificate verification.
+                      Sets SMTP_SKIP_CERT_VERIFY. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   tls:
-                    default: none
-                    description: TLS mode for the SMTP connection
-                    enum:
-                    - none
-                    - starttls
-                    - tls
+                    description: |-
+                      SMTP TLS mode.
+                      Sets SMTP_TLS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   user:
-                    description: SMTP authentication username
+                    description: |-
+                      SMTP username.
+                      Sets SMTP_USER. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                 required:
                 - from
@@ -3089,17 +3116,16 @@ spec:
                 type: object
               timezone:
                 description: |-
-                  Timezone for the Pocket-ID instance (e.g. "America/New_York")
-                  Sets the TZ environment variable
+                  Timezone (e.g. "America/New_York").
+                  Sets TZ.
                 type: string
               tls:
                 description: TLS terminates HTTPS in the Pocket-ID pod from a mounted
                   certificate Secret.
                 properties:
                   secretRef:
-                    description: |-
-                      SecretRef names a kubernetes.io/tls Secret in the instance's namespace holding
-                      tls.crt and tls.key.
+                    description: SecretRef names a kubernetes.io/tls Secret in the
+                      instance's namespace holding tls.crt and tls.key.
                     properties:
                       name:
                         default: ""
@@ -3120,122 +3146,126 @@ spec:
                   rule: size(self.secretRef.name) > 0
               tracing:
                 description: |-
-                  OpenTelemetry tracing configuration
-                  When present, tracing is automatically enabled
-                  Configure additional exporter-specific OTEL_* variables via the env escape hatch
+                  OpenTelemetry tracing. When present, the operator sets OTEL_TRACES_EXPORTER=otlp.
+                  Configure other OTEL_* variables via spec.env.
                 properties:
                   endpoint:
                     description: |-
-                      OTLP traces endpoint including path, e.g. http://collector:4318/v1/traces
-                      (sets OTEL_EXPORTER_OTLP_TRACES_ENDPOINT)
+                      OTLP traces endpoint, including the path.
+                      Sets OTEL_EXPORTER_OTLP_TRACES_ENDPOINT. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                 type: object
               trustedProxies:
                 description: |-
-                  TrustedProxies configures which proxies Pocket-ID trusts for X-Forwarded-* headers
-                  (sets TRUST_PROXY). When unset, the operator trusts the private/loopback ranges if
-                  spec.route.enabled is set.
+                  TrustedProxies configures which proxies Pocket-ID trusts for X-Forwarded-* headers. When unset, the operator trusts the private/loopback ranges if spec.route.enabled is set.
+                  Sets TRUST_PROXY. See https://pocket-id.org/docs/configuration/environment-variables#trust_proxy.
                 properties:
                   cidrs:
                     description: |-
-                      CIDRs is the list of trusted proxy IPs/CIDRs. Only used when enabled is true.
-                      When empty, TRUST_PROXY is set to "true", trusting all upstream sources
-                      To restrict trust, list explicit ranges: e.g. the in-cluster gateway network, or a CDN's
-                      published ranges when it connects directly to the pod.
+                      CIDRs is the list of trusted proxy IPs/CIDRs. Only used when enabled is true. When empty, TRUST_PROXY is set to "true", trusting all upstream sources.
+                      To restrict trust, list explicit ranges, e.g. the cluster pod network or a CDN's published ranges when it connects directly to the pod.
                     items:
                       type: string
                     type: array
                   enabled:
                     default: false
-                    description: |-
-                      Enabled turns on trust of X-Forwarded-* headers.
+                    description: Enabled turns on trust of X-Forwarded-* headers.
                       When false, TRUST_PROXY is set to "false".
                     type: boolean
                 required:
                 - enabled
                 type: object
               ui:
-                description: |-
-                  UI configuration
-                  The operator automatically sets UI_CONFIG_DISABLED=true when this section is configured
+                description: UI settings. The operator sets UI_CONFIG_DISABLED=true
+                  when this section is configured.
                 properties:
                   accentColor:
-                    description: Custom CSS color value for UI accent theme
+                    description: |-
+                      UI accent color.
+                      Sets ACCENT_COLOR. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   appName:
-                    description: Application display name
+                    description: |-
+                      Application name.
+                      Sets APP_NAME. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   disableAnimations:
-                    default: false
-                    description: Turn off UI animations
+                    description: |-
+                      Disable UI animations.
+                      Sets DISABLE_ANIMATIONS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   homePageUrl:
-                    description: Post-login redirect page
+                    description: |-
+                      Post-login redirect page.
+                      Sets HOME_PAGE_URL. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   sessionDuration:
-                    description: User session timeout in minutes
+                    description: |-
+                      Session duration in minutes.
+                      Sets SESSION_DURATION. See https://pocket-id.org/docs/configuration/environment-variables.
                     format: int32
                     type: integer
                 type: object
               userManagement:
-                description: User registration and account management settings
+                description: User registration and account settings. The operator
+                  sets UI_CONFIG_DISABLED=true when this section is configured.
                 properties:
                   allowOwnAccountEdit:
-                    description: Allow users to edit their own account details
+                    description: |-
+                      Allow users to edit their own account.
+                      Sets ALLOW_OWN_ACCOUNT_EDIT. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   allowUserSignups:
-                    description: User signup mode
-                    enum:
-                    - disabled
-                    - withToken
-                    - open
+                    description: |-
+                      User signup mode.
+                      Sets ALLOW_USER_SIGNUPS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   emailsVerified:
-                    default: false
-                    description: Auto-verify emails on signup or change
+                    description: |-
+                      Mark emails as verified.
+                      Sets EMAILS_VERIFIED. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   requireUserEmail:
-                    description: Require users to have an email address
+                    description: |-
+                      Require an email address.
+                      Sets REQUIRE_USER_EMAIL. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   signupDefaultCustomClaims:
-                    description: Default custom claims to assign to new users (JSON
-                      array)
+                    description: |-
+                      Default custom claims for new users.
+                      Sets SIGNUP_DEFAULT_CUSTOM_CLAIMS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   signupDefaultUserGroupIds:
-                    description: Default user group IDs to assign to new users
+                    description: |-
+                      Default user group IDs for new users.
+                      JSON-encoded into SIGNUP_DEFAULT_USER_GROUP_IDS. See https://pocket-id.org/docs/configuration/environment-variables.
                     items:
                       type: string
                     type: array
                 type: object
               versionCheckDisabled:
-                default: false
-                description: Disable GitHub version checks
+                description: |-
+                  Disable version checks.
+                  Sets VERSION_CHECK_DISABLED. See https://pocket-id.org/docs/configuration/environment-variables.
                 type: boolean
               webauthn:
-                description: |-
-                  Passkey restrictions
-                  The operator automatically sets UI_CONFIG_DISABLED=true when this section is configured
+                description: Passkey restrictions. The operator sets UI_CONFIG_DISABLED=true
+                  when this section is configured.
                 properties:
                   allowSyncedPasskeys:
                     description: |-
-                      Accept passkeys that are backup-eligible, i.e. synced to a cloud account
-                      such as iCloud Keychain or Google Password Manager
+                      Allow synced passkeys.
+                      Sets WEBAUTHN_ALLOW_SYNCED_PASSKEYS. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: boolean
                   authenticatorAttachment:
                     description: |-
-                      Authenticator type accepted at registration: platform (device-bound),
-                      cross-platform (roaming security key), or any
-                    enum:
-                    - any
-                    - platform
-                    - cross-platform
+                      Accepted authenticator type.
+                      Sets WEBAUTHN_AUTHENTICATOR_ATTACHMENT. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                   userVerification:
-                    description: Whether the authenticator must verify the user (PIN,
-                      biometric) during login
-                    enum:
-                    - required
-                    - preferred
+                    description: |-
+                      Passkey user verification requirement.
+                      Sets WEBAUTHN_USER_VERIFICATION. See https://pocket-id.org/docs/configuration/environment-variables.
                     type: string
                 type: object
             type: object
@@ -3256,7 +3286,7 @@ spec:
                 encryptionKey (deploy a new one)
               rule: has(self.external) != has(self.encryptionKey)
           status:
-            description: status defines the observed state of PocketIDInstance
+            description: status defines the observed state of PocketIDInstance.
             properties:
               conditions:
                 description: Conditions represent the current state of the Instance
@@ -3321,18 +3351,17 @@ spec:
                 x-kubernetes-list-type: map
               lastRotatedClientSecret:
                 description: |-
-                  LastRotatedClientSecret is the timestamp of the most recent OIDC client secret rotation
-                  on this instance. Used to enforce spec.OIDCClientRotation.minSpacing.
+                  LastRotatedClientSecret is the timestamp of the most recent OIDC client secret rotation on this instance.
+                  Used to enforce spec.OIDCClientRotation.minSpacing.
                 format: date-time
                 type: string
               staticApiKeySecretName:
-                description: StaticAPIKeySecretName is the name of the secret containing
-                  the STATIC_API_KEY
+                description: StaticAPIKeySecretName is the name of the Secret containing
+                  the STATIC_API_KEY.
                 type: string
               version:
-                description: |-
-                  Version is the current deployed version of the PocketID instance,
-                  retrieved from the /api/version/current endpoint.
+                description: Version is the current deployed version of the Pocket-ID
+                  instance, retrieved from the /api/version/current endpoint.
                 type: string
             type: object
         required:
@@ -3389,34 +3418,32 @@ spec:
               accessTokenDurationMinutes:
                 default: 60
                 description: How long access tokens issued to this client stay valid,
-                  in minutes
+                  in minutes.
                 format: int64
                 maximum: 525600
                 minimum: 1
                 type: integer
               allowedUserGroups:
                 description: |-
-                  AllowedUserGroups restricts access to the listed user groups. Each entry names
-                  either a PocketIDUserGroup CR or, for groups managed outside this cluster, an
-                  existing Pocket-ID group by name or ID.
+                  AllowedUserGroups restricts access to the listed user groups.
+                  Each entry names either a PocketIDUserGroup CR or, for groups managed outside this cluster, an existing Pocket-ID group by name or ID.
                 items:
-                  description: |-
-                    NamespacedUserGroupReference selects a Pocket-ID user group, either by the
-                    PocketIDUserGroup CR that manages it or, for groups managed outside this cluster,
-                    by their name or ID in Pocket-ID.
+                  description: NamespacedUserGroupReference selects a Pocket-ID user
+                    group, either by the PocketIDUserGroup CR that manages it or,
+                    for groups managed outside this cluster, by their name or ID in
+                    Pocket-ID.
                   properties:
                     groupID:
-                      description: |-
-                        GroupID is the Pocket-ID ID of an existing user group. Like groupName, the
-                        group itself is left untouched.
+                      description: GroupID is the Pocket-ID ID of an existing user
+                        group, for groups not managed by a PocketIDUserGroup in this
+                        cluster.
                       maxLength: 64
                       minLength: 1
                       type: string
                     groupName:
-                      description: |-
-                        GroupName is the name of an existing user group in Pocket-ID, for groups not
-                        managed by a PocketIDUserGroup in this cluster. The operator only resolves the
-                        group to grant this client access and never modifies the group itself.
+                      description: GroupName is the name of an existing user group
+                        in Pocket-ID, for groups not managed by a PocketIDUserGroup
+                        in this cluster.
                       maxLength: 255
                       minLength: 2
                       type: string
@@ -3427,8 +3454,8 @@ spec:
                       type: string
                     namespace:
                       description: |-
-                        Namespace is the namespace of the PocketIDUserGroup CR
-                        Defaults to the PocketIDOIDCClient namespace
+                        Namespace is the namespace of the PocketIDUserGroup CR.
+                        Defaults to the PocketIDOIDCClient namespace.
                       maxLength: 63
                       minLength: 1
                       type: string
@@ -3441,30 +3468,24 @@ spec:
                     rule: '!has(self.namespace) || has(self.name)'
                 type: array
               apiAccess:
-                description: |-
-                  APIAccess grants this client permission to request scoped access on the
-                  referenced PocketIDAPIs. The client is the sole owner of its API access in
-                  Pocket-ID: while this field is set the operator keeps the access in sync and
-                  clears it if the field is later emptied. When never set, existing API access
-                  configured out-of-band is left untouched.
+                description: APIAccess grants this client permission to request scoped
+                  access on the referenced PocketIDAPIs.
                 items:
                   description: |-
                     OIDCClientAPIAccess grants a client scoped permissions on a referenced PocketIDAPI.
-                    Permissions are referenced by their key; the controller resolves them to Pocket-ID
-                    permission IDs via the PocketIDAPI status.
-                    The access flags exist to grant a flow that selects no permissions, so setting one to false
-                    alongside a permission list is rejected rather than silently ignoring the list.
+                    Permissions are referenced by their key and the operator resolves them to Pocket-ID permission IDs via the PocketIDAPI status.
+                    The access flags grant a flow that selects no permissions, so setting one to false alongside a permission list is rejected rather than silently ignoring the list.
                   properties:
                     apiRef:
                       description: APIRef references the PocketIDAPI granting access.
                       properties:
                         name:
-                          description: Name is the name of the PocketIDAPI CR
+                          description: Name is the name of the PocketIDAPI CR.
                           type: string
                         namespace:
                           description: |-
-                            Namespace is the namespace of the PocketIDAPI CR
-                            Defaults to the referencing resource's namespace
+                            Namespace is the namespace of the PocketIDAPI CR.
+                            Defaults to the referencing resource's namespace.
                           type: string
                       required:
                       - name
@@ -3475,22 +3496,21 @@ spec:
                         Defaults to true when clientPermissions is non-empty, and requires a confidential client.
                       type: boolean
                     clientPermissions:
-                      description: |-
-                        ClientPermissions are permission keys granted for the client-credentials
-                        (machine-to-machine) flow. These require a confidential client.
+                      description: ClientPermissions are permission keys granted for
+                        the client-credentials (machine-to-machine) flow. These require
+                        a confidential client.
                       items:
                         type: string
                       type: array
                     delegatedAccess:
                       description: |-
-                        DelegatedAccess grants the user-delegated flow even with no permissions selected,
-                        e.g. a client requesting a resource that doesn't need any scopes.
+                        DelegatedAccess grants the user-delegated flow even with no permissions selected, e.g. a client requesting a resource that doesn't need any scopes.
                         Defaults to true when delegatedPermissions is non-empty.
                       type: boolean
                     delegatedPermissions:
-                      description: |-
-                        DelegatedPermissions are permission keys granted for the user-delegated
-                        (authorization code) flow, where the client acts on behalf of a user.
+                      description: DelegatedPermissions are permission keys granted
+                        for the user-delegated (authorization code) flow, where the
+                        client acts on behalf of a user.
                       items:
                         type: string
                       type: array
@@ -3511,41 +3531,33 @@ spec:
                 type: array
               backchannelLogoutUrl:
                 description: Back-channel logout URL Pocket-ID notifies when a user's
-                  session for the client ends
+                  session for the client ends.
                 type: string
               callbackUrls:
-                description: Callback URLs for the client
+                description: Callback URLs for the client.
                 items:
                   type: string
                 type: array
               clientID:
                 description: |-
-                  ClientID is the optional OIDC client ID to use instead of a generated one.
-                  The Client ID is immutable and cannot be changed once the oidc client is created.
-                  An https:// URL marks the client as an OAuth Client ID Metadata Document (CIMD)
-                  client, which the operator adopts but never creates and only partially manages.
+                  ClientID is the optional OIDC client ID to use instead of a generated one. The Client ID is immutable and cannot be changed once the oidc client is created.
+                  An https:// URL marks the client as an OAuth Client ID Metadata Document (CIMD) client, which the operator adopts but never creates and only partially manages.
                 maxLength: 512
                 minLength: 2
                 type: string
               clientSecretOverlap:
                 description: |-
-                  ClientSecretOverlap is how long the client-secret a replacement supersedes stays valid in
-                  Pocket-ID, giving consumers that cached it time to pick up the new one. It covers every
-                  replacement: scheduled rotations, the regenerate-client-secret annotation, and clientSecretRef updates.
-
-                  When unset or zero the previous secret is deleted as soon as the replacement is stored,
-                  so exactly one secret is ever valid. Must not exceed 168h, nor clientSecretRotation.interval if set.
+                  ClientSecretOverlap is how long the client-secret a replacement supersedes stays valid in Pocket-ID, giving consumers time to rollout and pick up the new one.
+                  When unset or zero the previous secret is deleted as soon as the replacement is stored, so exactly one secret is ever valid.
+                  Must not exceed 168h, nor clientSecretRotation.interval if set.
                 type: string
                 x-kubernetes-validations:
                 - message: clientSecretOverlap must not exceed 168h (7 days)
                   rule: duration(self) <= duration('168h')
               clientSecretRef:
                 description: |-
-                  ClientSecretRef references a Kubernetes Secret key holding the client secret to set in
-                  Pocket-ID, instead of letting the operator generate one. The value must be at least 16
-                  printable ASCII characters. While set, the operator never generates or rotates the secret:
-                  clientSecretRotation cannot be enabled and the regenerate-client-secret annotation is
-                  ignored.
+                  ClientSecretRef references a Kubernetes Secret key holding the client secret to set in Pocket-ID, instead of letting the operator generate one. The value must be at least 16 printable ASCII characters.
+                  While set, the operator never generates or rotates the secret.
                 properties:
                   key:
                     description: The key of the secret to select from.  Must be a
@@ -3570,18 +3582,17 @@ spec:
               clientSecretRotation:
                 description: |-
                   ClientSecretRotation configures automatic, scheduled regeneration of the client secret.
-                  When unset the secret is only regenerated on create/adopt, on self-heal,
-                  or when the regenerate-client-secret annotation is set.
+                  When unset the secret is only regenerated on create/adopt, on self-heal, or when the regenerate-client-secret annotation is set.
                 properties:
                   enabled:
                     default: false
                     description: Enabled controls whether automatic rotation is active.
                     type: boolean
                   interval:
-                    description: |-
-                      Interval is the minimum time between rotations (e.g. "720h" for 30 days). Must be between
-                      1h and 8760h. When omitted, rotation is driven entirely by window (which then becomes
-                      required) and the secret rotates once per window opening.
+                    description: Interval is the minimum time between rotations (e.g.
+                      "720h" for 30 days). Must be between 1h and 8760h. When omitted,
+                      rotation is driven entirely by window (which then becomes required)
+                      and the secret rotates once per window opening.
                     type: string
                     x-kubernetes-validations:
                     - message: interval must be between 1h and 8760h (1 year)
@@ -3589,10 +3600,8 @@ spec:
                         duration('8760h')
                   window:
                     description: |-
-                      Window restricts rotations to a recurring maintenance window. When interval is set, rotations
-                      fire as soon as the interval and global min-spacing are satisfied, confined to the window
-                      when one is configured. When interval is omitted, the window opening is itself the trigger:
-                      the secret rotates once per opening (subject to min-spacing).
+                      Window restricts rotations to a recurring maintenance window. When interval is set, rotations fire as soon as the interval and global min-spacing are satisfied, confined to the window when one is configured.
+                      When interval is omitted, the window opening is the trigger and the secret rotates once per opening subject to min-spacing.
                     properties:
                       closesAfter:
                         description: ClosesAfter is how long the window stays open
@@ -3619,39 +3628,37 @@ spec:
                   rule: '!has(self.window) || !has(self.interval) || duration(self.window.closesAfter)
                     <= duration(self.interval)'
               darkLogoUrl:
-                description: |-
-                  Dark logo URL for the client
-                  Deprecated: Use spec.logo.darkLogoUrl instead.
+                description: 'Deprecated: Use spec.logo.darkLogoUrl instead.'
                 type: string
               description:
                 description: Description is an optional description for the client
                 maxLength: 150
                 type: string
               federatedIdentities:
-                description: FederatedIdentities configures JWT assertion identities
+                description: FederatedIdentities configures JWT assertion identities.
                 items:
                   description: OIDCClientFederatedIdentity defines a federated identity
                     for OIDC client credentials.
                   properties:
                     audience:
-                      description: Audience is the audience for the identity
+                      description: Audience is the audience for the identity.
                       type: string
                     issuer:
-                      description: Issuer is the OIDC issuer for the identity
+                      description: Issuer is the OIDC issuer for the identity.
                       type: string
                     jwks:
                       description: JWKS is the URL of the identity's JWKS. Defaults
-                        to the issuer's /.well-known/jwks.json
+                        to the issuer's /.well-known/jwks.json.
                       type: string
                     publicKeys:
                       description: PublicKeys are the keys that verify the identity's
-                        assertions, used instead of a JWKS URL
+                        assertions, used instead of a JWKS URL.
                       items:
                         description: OIDCClientPublicKey is a public key given inline
                           or read from a ConfigMap or Secret.
                         properties:
                           value:
-                            description: Value is a JWK
+                            description: Value is a JWK.
                             type: object
                             x-kubernetes-preserve-unknown-fields: true
                           valueFrom:
@@ -3722,10 +3729,10 @@ spec:
                     replayProtection:
                       default: false
                       description: ReplayProtection requires client assertions to
-                        carry a jti and rejects replays
+                        carry a jti and rejects replays.
                       type: boolean
                     subject:
-                      description: Subject is the subject for the identity
+                      description: Subject is the subject for the identity.
                       type: string
                   type: object
                 type: array
@@ -3779,10 +3786,11 @@ spec:
                 x-kubernetes-map-type: atomic
               isPublic:
                 default: false
-                description: Indicates if the client is public (no client secret)
+                description: Indicates if the client is public (no client secret).
                 type: boolean
               launchUrl:
-                description: Launch URL for the client
+                description: Launch URL for the client. Used in the "apps" dashboard
+                  in the Pocket-ID ui.
                 type: string
               logo:
                 description: Logo configures logo URLs for the OIDC client with template
@@ -3790,20 +3798,17 @@ spec:
                 properties:
                   autoGenerate:
                     description: |-
-                      AutoGenerate controls whether to auto-generate logo URLs from templates
-                      when logoUrl/darkLogoUrl are not explicitly set in this struct.
+                      AutoGenerate controls whether to auto-generate logo URLs from templates when logoUrl/darkLogoUrl are not explicitly set in this struct.
                       If not set, defaults to the AUTOGENERATE_LOGOS env var on the operator, which defaults to true.
                     type: boolean
                   darkLogoUrl:
                     description: |-
-                      DarkLogoURL is the URL template for the dark logo.
-                      Use {{name}} as a placeholder for the logo name.
+                      DarkLogoURL is the URL template for the dark logo. Use {{name}} as a placeholder for the logo name.
                       Defaults to the DEFAULT_DARK_LOGO_URL env var on the operator.
                     type: string
                   logoUrl:
                     description: |-
-                      LogoURL is the URL template for the light logo.
-                      Use {{name}} as a placeholder for the logo name.
+                      LogoURL is the URL template for the light logo. Use {{name}} as a placeholder for the logo name.
                       Defaults to the DEFAULT_LOGO_URL env var on the operator.
                     type: string
                   nameOverride:
@@ -3813,28 +3818,25 @@ spec:
                     type: string
                 type: object
               logoUrl:
-                description: |-
-                  Logo URL for the client
-                  Deprecated: Use spec.logo.logoUrl instead.
+                description: 'Deprecated: Use spec.logo.logoUrl instead.'
                 type: string
               logoutCallbackUrls:
-                description: Logout callback URLs for the client
+                description: Logout callback URLs for the client.
                 items:
                   type: string
                 type: array
               name:
-                description: |-
-                  Name of the oidc client to create in Pocket ID.
-                  If omitted, defaults to metadata.name of the oidcclient resource.
+                description: Name of the oidc client to create in Pocket ID. If omitted,
+                  defaults to metadata.name of the oidcclient resource.
                 type: string
               pkceEnabled:
                 default: false
-                description: Enables PKCE for the client
+                description: Enables PKCE for the client.
                 type: boolean
               refreshTokenDurationMinutes:
                 default: 43200
                 description: How long refresh tokens issued to this client stay valid,
-                  in minutes
+                  in minutes.
                 format: int64
                 maximum: 525600
                 minimum: 1
@@ -3842,15 +3844,14 @@ spec:
               requiresPushedAuthorizationRequests:
                 default: false
                 description: Requires the client to use pushed authorization requests
-                  (PAR)
+                  (PAR).
                 type: boolean
               requiresReauthentication:
                 default: false
-                description: Requires reauthentication on login
+                description: Requires reauthentication on login.
                 type: boolean
               scim:
-                description: |-
-                  SCIM configures SCIM provisioning for this OIDC client.
+                description: SCIM configures SCIM provisioning for this OIDC client.
                   Pocket ID will push user/group changes to the configured endpoint.
                 properties:
                   endpoint:
@@ -3859,8 +3860,7 @@ spec:
                     type: string
                   tokenSecretRef:
                     description: |-
-                      TokenSecretRef references a Kubernetes Secret key containing the
-                      bearer token used to authenticate with the SCIM endpoint.
+                      TokenSecretRef references a Kubernetes Secret key containing the bearer token used to authenticate with the SCIM endpoint.
                       If omitted, no Authorization header is sent.
                     properties:
                       key:
@@ -3895,22 +3895,20 @@ spec:
                     additionalProperties:
                       type: string
                     description: |-
-                      AdditionalAnnotations allows setting custom annotations on the secret created by the
-                      PocketIDOIDCClient custom resource. Operator-managed annotations take precedence and
-                      cannot be overridden.
+                      AdditionalAnnotations allows setting custom annotations on the secret created by the PocketIDOIDCClient custom resource.
+                      Operator-managed annotations take precedence and cannot be overridden.
                     type: object
                   additionalLabels:
                     additionalProperties:
                       type: string
-                    description: |-
-                      AdditionalLabels allows setting custom labels on the secret created by the PocketIDOIDCClient
-                      custom resource
+                    description: AdditionalLabels allows setting custom labels on
+                      the secret created by the PocketIDOIDCClient custom resource
                     type: object
                   enabled:
                     default: true
                     description: |-
                       Enabled controls whether to create a secret with OIDC client credentials.
-                      If false, no secret will be created. Defaults to true
+                      If false, no secret will be created. Defaults to true.
                     type: boolean
                   keys:
                     description: Keys allows customization of the secret keys for
@@ -3918,104 +3916,87 @@ spec:
                     properties:
                       authorizationUrl:
                         default: authorization_url
-                        description: |-
-                          AuthorizationURL is the key name for the OIDC authorization endpoint URL.
-                          Defaults to authorization_url
+                        description: AuthorizationURL is the key name for the OIDC
+                          authorization endpoint URL.
                         type: string
                       callbackUrls:
                         default: callback_urls
-                        description: |-
-                          CallbackURLs is the key name for the callback URLs.
-                          Defaults to callback_urls
+                        description: CallbackURLs is the key name for the callback
+                          URLs.
                         type: string
                       clientID:
                         default: client_id
-                        description: |-
-                          ClientID is the key name for the OIDC client ID.
-                          Defaults to client_id
+                        description: ClientID is the key name for the OIDC client
+                          ID.
                         type: string
                       clientSecret:
                         default: client_secret
-                        description: |-
-                          ClientSecret is the key name for the OIDC client secret.
-                          Defaults to client_secret
+                        description: ClientSecret is the key name for the OIDC client
+                          secret.
                         type: string
                       discoveryUrl:
                         default: discovery_url
-                        description: |-
-                          DiscoveryURL is the key name for the OIDC discovery URL.
-                          Defaults to discovery_url
+                        description: DiscoveryURL is the key name for the OIDC discovery
+                          URL.
                         type: string
                       endSessionUrl:
                         default: end_session_url
-                        description: |-
-                          EndSessionURL is the key name for the OIDC end session (logout) endpoint URL.
-                          Defaults to end_session_url
+                        description: EndSessionURL is the key name for the OIDC end
+                          session (logout) endpoint URL.
                         type: string
                       issuerUrl:
                         default: issuer_url
-                        description: |-
-                          IssuerURL is the key name for the OIDC issuer URL.
-                          Defaults to issuer_url
+                        description: IssuerURL is the key name for the OIDC issuer
+                          URL.
                         type: string
                       jwksUrl:
                         default: jwks_url
-                        description: |-
-                          JwksURL is the key name for the OIDC JWKS (JSON Web Key Set) endpoint URL.
-                          Defaults to jwks_url
+                        description: JwksURL is the key name for the OIDC JWKS (JSON
+                          Web Key Set) endpoint URL.
                         type: string
                       logoutCallbackUrls:
                         default: logout_callback_urls
-                        description: |-
-                          LogoutCallbackURLs is the key name for the logout callback URLs.
-                          Defaults to logout_callback_urls
+                        description: LogoutCallbackURLs is the key name for the logout
+                          callback URLs.
                         type: string
                       resource:
                         default: resource
-                        description: |-
-                          Resource is the key name for the audience to request tokens for, taken from the APIs
-                          in apiAccess. It also prefixes the per-API key "<resource>_<apiRef.name>".
-                          Defaults to resource
+                        description: Resource is the key name for the audience to
+                          request tokens for, taken from the APIs in apiAccess. It
+                          also prefixes the per-API key "<resource>_<apiRef.name>".
                         type: string
                       scopes:
                         default: scopes
-                        description: |-
-                          Scopes is the key name for the space-delimited scopes apiAccess grants the
-                          client-credentials flow. It also prefixes the per-API key "<scopes>_<apiRef.name>".
-                          Defaults to scopes
+                        description: Scopes is the key name for the space-delimited
+                          scopes apiAccess grants the client-credentials flow. It
+                          also prefixes the per-API key "<scopes>_<apiRef.name>".
                         type: string
                       tokenUrl:
                         default: token_url
-                        description: |-
-                          TokenURL is the key name for the OIDC token endpoint URL.
-                          Defaults to token_url
+                        description: TokenURL is the key name for the OIDC token endpoint
+                          URL.
                         type: string
                       userinfoUrl:
                         default: userinfo_url
-                        description: |-
-                          UserinfoURL is the key name for the OIDC userinfo endpoint URL.
-                          Defaults to userinfo_url
+                        description: UserinfoURL is the key name for the OIDC userinfo
+                          endpoint URL.
                         type: string
                     type: object
                   name:
-                    description: |-
-                      Name is the name of the secret to create.
-                      Defaults to metadata.name + "-oidc-credentials"
+                    description: Name is the name of the secret to create. Defaults
+                      to metadata.name + "-oidc-credentials"
                     type: string
                   storeClientSecret:
                     default: true
                     description: |-
                       StoreClientSecret controls whether the operator manages the client secret.
-                      When false, the operator never regenerates an existing client secret: a client
-                      created by the operator still gets its initial secret minted and stored, while
-                      an adopted client keeps its externally-managed secret and the Secret omits the
-                      client_secret key. Defaults to true
+                      When false, a client created by the operator still gets its initial secret minted and stored, while an adopted client keeps its externally-managed secret and the Secret omits the client_secret key.
                     type: boolean
                 type: object
               skipConsent:
                 default: false
                 description: Skips the consent screen on initial authorization for
-                  this client
+                  this client.
                 type: boolean
             type: object
             x-kubernetes-validations:
@@ -4081,28 +4062,26 @@ spec:
                   type: string
                 type: array
               cimdGrantedAPIs:
-                description: |-
-                  CIMDGrantedAPIs are the API resources this client can reach because the API grants
-                  every Client ID Metadata Document client access, rather than because of spec.apiAccess.
-                  Removing an apiAccess entry does not revoke access listed here; that is turned off on
-                  the PocketIDAPI. Only ever set for a cimd client.
+                description: CIMDGrantedAPIs are the resources of APIs reachable through
+                  their cimdAccess setting rather than this client's own grant; revoke
+                  it on the PocketIDAPI, not via spec.apiAccess. Only populated for
+                  cimd clients.
                 items:
                   type: string
                 type: array
               clientID:
-                description: ClientID is the ID assigned by Pocket-ID
+                description: ClientID is the ID assigned by Pocket-ID.
                 type: string
               clientSecretSourceVersion:
-                description: |-
-                  ClientSecretSourceVersion identifies the spec.clientSecretRef source last pushed to
-                  Pocket-ID. Pocket-ID stores the secret hashed and never returns it, so this is how the
-                  operator detects that the referenced Secret changed and needs pushing again.
+                description: ClientSecretSourceVersion identifies the spec.clientSecretRef
+                  source last pushed to Pocket-ID. Pocket-ID stores the secret hashed
+                  and never returns it, so this is how the operator detects that the
+                  referenced Secret changed and needs pushing again.
                 type: string
               clientType:
                 description: |-
                   ClientType is how the client was registered in Pocket-ID: "standard" or "cimd".
-                  For a "cimd" client the operator manages only the fields Pocket-ID persists on an
-                  admin update; the rest are owned by its OAuth Client ID Metadata Document.
+                  For a "cimd" client the operator manages only the fields Pocket-ID persists on an admin update; the rest are owned by its OAuth Client ID Metadata Document.
                 type: string
               conditions:
                 description: Conditions represent the current state of the PocketIDOIDCClient
@@ -4169,24 +4148,22 @@ spec:
                 description: CreatedAt is the creation timestamp from Pocket-ID
                 type: string
               darkLogoReachable:
-                description: |-
-                  DarkLogoReachable reports whether Pocket-ID could fetch and store the dark logo from the
-                  URL the spec resolves to. Unset when the spec asks for no dark logo.
+                description: DarkLogoReachable reports whether Pocket-ID could fetch
+                  and store the dark logo from the URL the spec resolves to.
                 type: boolean
               darkLogoUrl:
                 description: DarkLogoURL is the dark logo URL the operator last successfully
                   applied to Pocket-ID.
                 type: string
               lastRotatedAt:
-                description: |-
-                  LastRotatedAt is the time the client secret was last regenerated by the
-                  operator. Used to determine when the next scheduled rotation is due.
+                description: LastRotatedAt is the time the client secret was last
+                  regenerated by the operator. Used to determine when the next scheduled
+                  rotation is due.
                 format: date-time
                 type: string
               logoReachable:
-                description: |-
-                  LogoReachable reports whether Pocket-ID could fetch and store the light logo from the
-                  URL the spec resolves to. Unset when the spec asks for no light logo.
+                description: LogoReachable reports whether Pocket-ID could fetch and
+                  store the light logo from the URL the spec resolves to.
                 type: boolean
               logoUrl:
                 description: LogoURL is the light logo URL the operator last successfully
@@ -4199,9 +4176,9 @@ spec:
                   type: string
                 type: array
               managedAPIPermissionIDs:
-                description: |-
-                  ManagedAPIPermissionIDs are the Pocket-ID API permission IDs the operator last
-                  pushed as this client's API access (both delegated and client-credentials).
+                description: ManagedAPIPermissionIDs are the Pocket-ID API permission
+                  IDs the operator last pushed as this client's API access (both delegated
+                  and client-credentials).
                 items:
                   type: string
                 type: array
@@ -4212,12 +4189,12 @@ spec:
                   type: string
                 type: array
               name:
-                description: Name is the resolved name from Pocket-ID
+                description: Name is the resolved name from Pocket-ID.
                 type: string
               pkceSupported:
-                description: |-
-                  PKCESupported indicates Pocket-ID observed the client using PKCE during an
-                  authorization flow while spec.pkceEnabled is false, signalling PKCE can be enabled.
+                description: PKCESupported indicates Pocket-ID observed the client
+                  using PKCE during an authorization flow while spec.pkceEnabled is
+                  false, signalling PKCE can be enabled.
                 type: boolean
               scimProviderID:
                 description: SCIMProviderID is the pocket-id ID of the SCIM service
@@ -4250,7 +4227,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PocketIDUserGroup is the Schema for the pocketidusergroups API
+        description: PocketIDUserGroup is the Schema for the pocketidusergroups API.
         properties:
           apiVersion:
             description: |-
@@ -4273,36 +4250,36 @@ spec:
             description: spec defines the desired state of PocketIDUserGroup
             properties:
               allowedOIDCClients:
-                description: |-
-                  AllowedOIDCClients lists PocketIDOIDCClient CRs that this group grants access to.
-                  The final set of allowed clients is the union of this field and any
-                  OIDCClients that reference this group in their allowedUserGroups.
+                description: AllowedOIDCClients lists PocketIDOIDCClient CRs that
+                  this group grants access to. Each must be Ready. The final set of
+                  allowed clients is the union of this field and any PocketIDOIDCClients
+                  that reference this group in their allowedUserGroups.
                 items:
                   description: NamespacedOIDCClientReference references a PocketIDOIDCClient
                     by name and namespace.
                   properties:
                     name:
-                      description: Name is the name of the PocketIDOIDCClient CR
+                      description: Name is the name of the PocketIDOIDCClient CR.
                       type: string
                     namespace:
                       description: |-
-                        Namespace is the namespace of the PocketIDOIDCClient CR
-                        Defaults to the referencing resource's namespace
+                        Namespace is the namespace of the PocketIDOIDCClient CR.
+                        Defaults to the referencing resource's namespace.
                       type: string
                   type: object
                 type: array
               customClaims:
-                description: CustomClaims are additional claims to attach to users
-                  in this group
+                description: CustomClaims are additional claims to attach to every
+                  user in this group. A user's own claim with the same key takes precedence.
                 items:
                   description: CustomClaim defines a custom claim key/value pair for
                     a user or user group.
                   properties:
                     key:
-                      description: Key is the claim key
+                      description: Key is the claim key.
                       type: string
                     value:
-                      description: Value is the claim value
+                      description: Value is the claim value.
                       type: string
                   required:
                   - key
@@ -4310,7 +4287,8 @@ spec:
                   type: object
                 type: array
               friendlyName:
-                description: FriendlyName is the display name for the user group
+                description: FriendlyName is the display name of the user group. Defaults
+                  to the name.
                 maxLength: 50
                 minLength: 2
                 type: string
@@ -4363,40 +4341,40 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
               name:
-                description: Name of the user group. Defaults to the metadata.name
+                description: Name of the user group in Pocket-ID. Defaults to metadata.name.
                 maxLength: 255
                 minLength: 2
                 type: string
               users:
-                description: Users defines the users to add to this group
+                description: Users defines the members the operator manages in this
+                  group. Members added outside the operator are left in place.
                 properties:
                   userIDs:
-                    description: UserIDs are Pocket-ID user IDs to add directly to
-                      this group.
+                    description: UserIDs are Pocket-ID user IDs to add to this group,
+                      for users not managed by a PocketIDUser.
                     items:
                       type: string
                     type: array
                   userRefs:
                     description: UserRefs are PocketIDUser custom resources to add
-                      to this group
+                      to this group. Each must be Ready.
                     items:
                       description: NamespacedUserReference references a PocketIDUser
                         by name and namespace.
                       properties:
                         name:
-                          description: Name is the name of the PocketIDUser CR
+                          description: Name is the name of the PocketIDUser CR.
                           type: string
                         namespace:
-                          description: |-
-                            Namespace is the namespace of the PocketIDUser CR
-                            Defaults to the referencing resource's namespace
+                          description: Namespace is the namespace of the PocketIDUser
+                            CR. Defaults to the referencing resource's namespace.
                           type: string
                       type: object
                     type: array
                   usernames:
-                    description: |-
-                      Usernames are Pocket-ID usernames to add to this group.
-                      The controller will look up the user ID from Pocket-ID by username.
+                    description: Usernames are existing Pocket-ID users to add to
+                      this group, for users not managed by a PocketIDUser. Each must
+                      exist in Pocket-ID.
                     items:
                       type: string
                     type: array
@@ -4406,8 +4384,8 @@ spec:
             description: status defines the observed state of PocketIDUserGroup
             properties:
               allowedOIDCClientIDs:
-                description: AllowedOIDCClientIDs are the resolved OIDC client IDs
-                  assigned to this group
+                description: AllowedOIDCClientIDs are the IDs of the OIDC clients
+                  this group is allowed to access in Pocket-ID.
                 items:
                   type: string
                 type: array
@@ -4473,19 +4451,19 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               createdAt:
-                description: CreatedAt is the creation timestamp from Pocket-ID
+                description: CreatedAt is the creation timestamp from Pocket-ID.
                 type: string
               customClaims:
-                description: CustomClaims are the resolved custom claims on the group
+                description: CustomClaims are the group's custom claims in Pocket-ID.
                 items:
                   description: CustomClaim defines a custom claim key/value pair for
                     a user or user group.
                   properties:
                     key:
-                      description: Key is the claim key
+                      description: Key is the claim key.
                       type: string
                     value:
-                      description: Value is the claim value
+                      description: Value is the claim value.
                       type: string
                   required:
                   - key
@@ -4493,28 +4471,28 @@ spec:
                   type: object
                 type: array
               friendlyName:
-                description: FriendlyName is the resolved display name from Pocket-ID
+                description: FriendlyName is the display name from Pocket-ID.
                 type: string
               groupID:
-                description: GroupID is the ID assigned by Pocket-ID
+                description: GroupID is the ID assigned by Pocket-ID.
                 type: string
               ldapID:
-                description: LdapID is the LDAP identifier if the group is managed
-                  via LDAP
+                description: LdapID is the LDAP identifier if the group is synced
+                  from LDAP.
                 type: string
               managedUserIDs:
-                description: |-
-                  ManagedUserIDs are the Pocket-ID user IDs that the operator is actively managing.
-                  Users not in this list are considered externally managed and won't be removed.
+                description: ManagedUserIDs are the Pocket-ID user IDs the operator
+                  manages in this group. Members not in this list were added outside
+                  the operator and are never removed.
                 items:
                   type: string
                 type: array
               name:
-                description: Name is the resolved group name from Pocket-ID
+                description: Name is the group name from Pocket-ID.
                 type: string
               totalUserCount:
-                description: TotalUserCount is the total number of users in the group
-                  including externally managed
+                description: TotalUserCount is the number of members in the group,
+                  including those not managed by the operator.
                 type: integer
             type: object
         type: object
@@ -4543,7 +4521,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: PocketIDUser is the Schema for the pocketidusers API
+        description: PocketIDUser is the Schema for the pocketidusers API.
         properties:
           apiVersion:
             description: |-
@@ -4567,31 +4545,31 @@ spec:
             properties:
               admin:
                 default: false
-                description: Flag whether a user is an admin or not
+                description: Set this user as an admin.
                 type: boolean
               apiKeys:
-                description: APIKeys is a list of API keys to create for this user
+                description: APIKeys is a list of API keys to create for this user.
                 items:
-                  description: APIKeySpec defines the desired state of an API key
+                  description: APIKeySpec defines the desired state of an API key.
                   properties:
                     description:
                       default: Created by pocket-id-operator
-                      description: Description of the API key
+                      description: Description of the API key.
                       type: string
                     expiresAt:
                       description: |-
-                        ExpiresAt is the expiration time in RFC3339 format (e.g., "2030-01-01T00:00:00Z")
-                        Defaults to 1 year in the future
+                        ExpiresAt is the expiration time in RFC3339 format (e.g., "2030-01-01T00:00:00Z").
+                        Defaults to 1 year in the future.
                       type: string
                     name:
-                      description: Name of the API key (3-50 characters)
+                      description: Name of the API key (3-50 characters).
                       maxLength: 50
                       minLength: 3
                       type: string
                     secretRef:
-                      description: |-
-                        SecretRef references an existing Secret containing the API key token
-                        If set, the operator will use this secret instead of creating a new one
+                      description: SecretRef references an existing Secret containing
+                        the API key token. If set, the operator will use this secret
+                        instead of creating a new one.
                       properties:
                         key:
                           description: The key of the secret to select from.  Must
@@ -4619,18 +4597,18 @@ spec:
                   type: object
                 type: array
               customClaims:
-                description: |-
-                  CustomClaims are additional claims to attach to this user.
-                  User claims take precedence over claims inherited from the user's groups.
+                description: CustomClaims are additional claims to attach to this
+                  user. User claims take precedence over claims inherited from the
+                  user's groups.
                 items:
                   description: CustomClaim defines a custom claim key/value pair for
                     a user or user group.
                   properties:
                     key:
-                      description: Key is the claim key
+                      description: Key is the claim key.
                       type: string
                     value:
-                      description: Value is the claim value
+                      description: Value is the claim value.
                       type: string
                   required:
                   - key
@@ -4639,18 +4617,17 @@ spec:
                 type: array
               disabled:
                 default: false
-                description: Disabled indicates whether the user account is disabled
+                description: Disabled indicates whether the user account is disabled.
                 type: boolean
               displayName:
-                description: |-
-                  DisplayName of the user
-                  Defaults to "spec.FirstName spec.LastName"
+                description: DisplayName of the user. Defaults to the first name followed
+                  by the last name, if set. Can be a plain value or reference a secret.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value from a secret
+                    description: Source for the value from a secret.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -4675,16 +4652,14 @@ spec:
                     x-kubernetes-map-type: atomic
                 type: object
               email:
-                description: |-
-                  Email of the user
-                  Can be a plain value or reference a secret
-                  Required unless email is disabled in pocket-id
+                description: Email of the user. Defaults to "<username>@placeholder.local".
+                  Can be a plain value or reference a secret.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value from a secret
+                    description: Source for the value from a secret.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -4709,16 +4684,14 @@ spec:
                     x-kubernetes-map-type: atomic
                 type: object
               firstName:
-                description: |-
-                  First name of the user
-                  Can be a plain value or reference a secret
-                  Defaults to metadata.name of the Resource
+                description: First name of the user. Defaults to the username. Can
+                  be a plain value or reference a secret.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value from a secret
+                    description: Source for the value from a secret.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -4791,15 +4764,14 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
               lastName:
-                description: |-
-                  Last name of the user
-                  Can be a plain value or reference a secret
+                description: Last name of the user. Can be a plain value or reference
+                  a secret.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value from a secret
+                    description: Source for the value from a secret.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -4825,19 +4797,17 @@ spec:
                 type: object
               locale:
                 description: Locale is the user's preferred locale (e.g., "en", "de",
-                  "fr")
+                  "fr").
                 type: string
               userID:
                 description: |-
                   UserID is the optional user ID to use instead of one generated by Pocket-ID.
-                  Pocket-ID only accepts a lowercase UUID here, and the ID is immutable once the
-                  user is created.
+                  Pocket-ID only accepts a lowercase UUID and the ID is immutable once the user is created.
                 pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
                 type: string
               userInfoSecretRef:
                 description: |-
-                  UserInfoSecretRef references a single Secret containing sensitive user profile fields.
-                  Values from the secret are evaluated last, so spec.username will override the username key in this secret
+                  UserInfoSecretRef references a single Secret containing sensitive user profile fields. Values from the secret are evaluated last, so spec.username will override the username key in this secret.
                   Keys: username, firstName, lastName, email, displayName
                 properties:
                   name:
@@ -4852,15 +4822,14 @@ spec:
                 type: object
                 x-kubernetes-map-type: atomic
               username:
-                description: |-
-                  Username of the user. Defaults to the metadata.name
-                  Can be a plain value or reference a secret
+                description: Username of the user. Defaults to the metadata.name.
+                  Can be a plain value or reference a secret.
                 properties:
                   value:
-                    description: Plain text value
+                    description: Plain text value.
                     type: string
                   valueFrom:
-                    description: Source for the value from a secret
+                    description: Source for the value from a secret.
                     properties:
                       key:
                         description: The key of the secret to select from.  Must be
@@ -4893,31 +4862,31 @@ spec:
             description: status defines the observed state of PocketIDUser
             properties:
               apiKeys:
-                description: APIKeys reflects the observed state of each API key
+                description: APIKeys reflects the observed state of each API key.
                 items:
                   description: APIKeyStatus reflects the observed state of an API
-                    key from Pocket-ID
+                    key from Pocket-ID.
                   properties:
                     createdAt:
-                      description: CreatedAt timestamp from Pocket-ID
+                      description: CreatedAt timestamp from Pocket-ID.
                       type: string
                     expiresAt:
-                      description: ExpiresAt timestamp from Pocket-ID
+                      description: ExpiresAt timestamp from Pocket-ID.
                       type: string
                     id:
-                      description: ID assigned by Pocket-ID
+                      description: ID assigned by Pocket-ID.
                       type: string
                     lastUsedAt:
-                      description: LastUsedAt timestamp from Pocket-ID
+                      description: LastUsedAt timestamp from Pocket-ID.
                       type: string
                     name:
-                      description: Name of the API key (matches spec)
+                      description: Name of the API key (matches spec).
                       type: string
                     secretKey:
-                      description: SecretKey within the secret containing the token
+                      description: SecretKey within the secret containing the token.
                       type: string
                     secretName:
-                      description: SecretName where the API key token is stored
+                      description: SecretName where the API key token is stored.
                       type: string
                   required:
                   - name
@@ -4985,16 +4954,16 @@ spec:
                 - type
                 x-kubernetes-list-type: map
               customClaims:
-                description: CustomClaims are the resolved custom claims on the user
+                description: CustomClaims are the resolved custom claims on the user.
                 items:
                   description: CustomClaim defines a custom claim key/value pair for
                     a user or user group.
                   properties:
                     key:
-                      description: Key is the claim key
+                      description: Key is the claim key.
                       type: string
                     value:
-                      description: Value is the claim value
+                      description: Value is the claim value.
                       type: string
                   required:
                   - key
@@ -5002,37 +4971,36 @@ spec:
                   type: object
                 type: array
               disabled:
-                description: Disabled reflects whether the user is disabled in Pocket-ID
+                description: Disabled reflects whether the user is disabled in Pocket-ID.
                 type: boolean
               emailVerified:
                 description: EmailVerified reflects whether the user's email has been
                   verified in Pocket-ID.
                 type: boolean
               isAdmin:
-                description: IsAdmin reflects whether the user is an admin in Pocket-ID
+                description: IsAdmin reflects whether the user is an admin in Pocket-ID.
                 type: boolean
               locale:
-                description: Locale of the user from Pocket-ID
+                description: Locale of the user from Pocket-ID.
                 type: string
               oneTimeLoginExpiresAt:
                 description: OneTimeLoginExpiresAt is the RFC3339 timestamp when the
-                  login token expires
+                  login token expires.
                 type: string
               oneTimeLoginToken:
                 description: OneTimeLoginToken is the one-time login token for a newly
-                  created user
+                  created user.
                 type: string
               oneTimeLoginURL:
                 description: OneTimeLoginURL is the login URL built from the one-time
-                  login token
+                  login token.
                 type: string
               userID:
-                description: UserID is the ID assigned by Pocket-ID
+                description: UserID is the ID assigned by Pocket-ID.
                 type: string
               userInfoSecretName:
-                description: |-
-                  UserInfoSecretName is the name of the Secret storing user profile fields.
-                  The operator writes to "<name>-user-data".
+                description: UserInfoSecretName is the name of the Secret storing
+                  user profile fields. The operator writes to "<name>-user-data".
                 type: string
             type: object
         type: object

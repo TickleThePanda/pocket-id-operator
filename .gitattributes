@@ -13,10 +13,14 @@ charts/pocket-id-operator/crds/*.yaml                        linguist-generated=
 dist/install.yaml                             linguist-generated=true
 dist/crds.yaml                                linguist-generated=true
 
-# tool-managed lockfile (mise install)
+# tool-managed lockfile and dependency sidecars (mise install)
 mise.lock                                     linguist-generated=true
+.mise/locks/**                                linguist-generated=true
 
 # crd-schema-publisher + jq splice (mise run generate-schemas)
 dist/schemas/*.json                           linguist-generated=true
 charts/pocket-id-operator/values.schema.json                 linguist-generated=true
 charts/pocket-id-instance/values.schema.json                 linguist-generated=true
+
+# crd-ref-docs (mise run generate-api-docs)
+docs/reference/*.md                           linguist-generated=true
