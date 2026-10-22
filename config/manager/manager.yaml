@@ -58,7 +58,7 @@ spec:
             - --leader-elect
             - --health-probe-bind-address=:8081
             - --zap-log-level=info
-          image: ghcr.io/aclerici38/pocket-id-operator:v0.16.0@sha256:71e2c64dad8fbdbd45052562412b127031df073fbbdbdb3c7126963de4018e3c
+          image: ghcr.io/aclerici38/pocket-id-operator:v0.16.1@sha256:6e426e781003bcb3e039016ca83c3f1d771029bc9594dff9c698eec80d6c0794
           name: manager
           ports: []
           securityContext:
