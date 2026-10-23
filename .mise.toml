@@ -8,6 +8,7 @@ min_version = "2026.10.12"
 experimental = true
 lockfile = true
 lockfile_platforms = ["linux-x64", "linux-arm64", "macos-arm64"]
+minimum_release_age = "0s"
 
 [tools]
 go = "1.27.3"
