@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"slices"
 	"strings"
 	"testing"
@@ -21,6 +20,7 @@ import (
 
 	pocketidinternalv1alpha1 "github.com/aclerici38/pocket-id-operator/api/v1alpha1"
 	"github.com/aclerici38/pocket-id-operator/internal/pocketid"
+	"github.com/aclerici38/pocket-id-operator/internal/pocketid/pocketidtest"
 )
 
 const (
@@ -135,8 +135,6 @@ func TestOidcClientInput_SpecCallbackURLsTakePrecedenceOverCurrent(t *testing.T)
 
 // --- Logo URL resolution tests ---
 
-func boolPtr(b bool) *bool { return &b }
-
 // namedClient builds a bare CR whose metadata.name drives {{name}} substitution.
 func namedClient(name string) *pocketidinternalv1alpha1.PocketIDOIDCClient {
 	return &pocketidinternalv1alpha1.PocketIDOIDCClient{
@@ -151,7 +149,7 @@ func TestResolveLogoURLs_DeprecatedFieldsTakePrecedence(t *testing.T) {
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			LogoURL:     "https://explicit.example.com/logo.png",      //nolint:staticcheck // testing the deprecated field
 			DarkLogoURL: "https://explicit.example.com/logo-dark.png", //nolint:staticcheck // testing the deprecated field
-			Logo:        &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: boolPtr(true)},
+			Logo:        &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: new(true)},
 		},
 	}
 	logoURL, darkLogoURL := r.resolveLogoURLs(oidcClient)
@@ -178,7 +176,7 @@ func TestResolveLogoURLs_NameOverride(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(true),
+				AutoGenerate: new(true),
 				NameOverride: "custom-icon",
 				LogoURL:      "https://cdn.example.com/{{name}}.png",
 			},
@@ -199,7 +197,7 @@ func TestResolveLogoURLs_EnvVarFallback(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(true),
+				AutoGenerate: new(true),
 			},
 		},
 	}
@@ -218,7 +216,7 @@ func TestResolveLogoURLs_NoTemplatesConfigured(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "grafana", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(true),
+				AutoGenerate: new(true),
 			},
 		},
 	}
@@ -245,7 +243,7 @@ func TestResolveLogoURLs_AutoGenerateFalse(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(false),
+				AutoGenerate: new(false),
 			},
 		},
 	}
@@ -261,7 +259,7 @@ func TestResolveLogoURLs_ExplicitURLIgnoresAutoGenerateFalse(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(false),
+				AutoGenerate: new(false),
 				LogoURL:      "https://cdn.example.com/{{name}}.png",
 			},
 		},
@@ -339,7 +337,7 @@ func TestResolveLogoURLs_ExplicitTrueOverridesEnvFalse(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(true),
+				AutoGenerate: new(true),
 			},
 		},
 	}
@@ -355,7 +353,7 @@ func TestResolveLogoURLs_PerClientTemplateOverridesEnvVar(t *testing.T) {
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{
-				AutoGenerate: boolPtr(true),
+				AutoGenerate: new(true),
 				LogoURL:      "https://custom.example.com/{{name}}.png",
 			},
 		},
@@ -394,7 +392,7 @@ func logoClient(light, appliedLight, appliedDark string) *pocketidinternalv1alph
 	return &pocketidinternalv1alpha1.PocketIDOIDCClient{
 		ObjectMeta: metav1.ObjectMeta{Name: "my-app", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
-			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: boolPtr(false), LogoURL: light},
+			Logo: &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: new(false), LogoURL: light},
 		},
 		Status: pocketidinternalv1alpha1.PocketIDOIDCClientStatus{
 			LogoURL:     appliedLight,
@@ -782,12 +780,10 @@ func TestPushOIDCClientState_SkipsWhenInSync(t *testing.T) {
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR)
 
 	// Server that fails on any call — verifies no API calls are made.
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		t.Error("unexpected API call during in-sync pushOIDCClientState")
 		http.Error(w, "unexpected", http.StatusInternalServerError)
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -819,7 +815,7 @@ func TestPushOIDCClientState_UpdatesWhenFieldsChange(t *testing.T) {
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR)
 
 	updateCalled := false
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method == http.MethodPut && req.URL.Path == "/api/oidc/clients/update-id" {
 			updateCalled = true
 			okOIDCClientResponse(w, "update-id", "update-client")
@@ -827,8 +823,6 @@ func TestPushOIDCClientState_UpdatesWhenFieldsChange(t *testing.T) {
 		}
 		http.NotFound(w, req)
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -893,7 +887,7 @@ func TestPushOIDCClientState_FederatedIdentities(t *testing.T) {
 			r := newPushStateOIDCReconciler(scheme, oidcClientCR)
 
 			var sent map[string]any
-			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 				if req.Method == http.MethodPut && req.URL.Path == "/api/oidc/clients/cred-id" {
 					_ = json.NewDecoder(req.Body).Decode(&sent)
 					okOIDCClientResponse(w, "cred-id", "cred-client")
@@ -901,8 +895,6 @@ func TestPushOIDCClientState_FederatedIdentities(t *testing.T) {
 				}
 				http.NotFound(w, req)
 			}))
-			defer ts.Close()
-			apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 			if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -951,14 +943,12 @@ func TestOIDCClientWrites_StopOnUnresolvablePublicKeys(t *testing.T) {
 	r.APIReader = r.Client
 
 	var writes int
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodGet {
 			writes++
 		}
 		http.NotFound(w, req)
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.createOrAdoptOIDCClient(ctx, oidcClientCR, apiClient); !errors.Is(err, errPublicKeys) {
 		t.Errorf("create: expected a public key error, got %v", err)
@@ -1036,7 +1026,7 @@ func TestPushOIDCClientState_UnrestrictsBeforeClearingGroups(t *testing.T) {
 func recordGroupPushOrder(t *testing.T, r *Reconciler, oidcClientCR *pocketidinternalv1alpha1.PocketIDOIDCClient, current *pocketid.OIDCClient) []string {
 	t.Helper()
 	var calls []string
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		switch {
 		case req.Method == http.MethodPut && req.URL.Path == "/api/oidc/clients/groups-id":
 			var body struct {
@@ -1056,8 +1046,6 @@ func recordGroupPushOrder(t *testing.T, r *Reconciler, oidcClientCR *pocketidint
 			http.NotFound(w, req)
 		}
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(context.Background(), oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1099,7 +1087,7 @@ func TestPushOIDCClientState_IsGroupRestrictedReflectsAggregation(t *testing.T) 
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR, group)
 
 	groupsUpdateSent := false
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		switch {
 		case req.Method == http.MethodPut && req.URL.Path == "/api/oidc/clients/restrict-id":
 			okOIDCClientResponse(w, "restrict-id", "restrict-client")
@@ -1110,8 +1098,6 @@ func TestPushOIDCClientState_IsGroupRestrictedReflectsAggregation(t *testing.T) 
 			http.NotFound(w, req)
 		}
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -1134,7 +1120,7 @@ func TestPushOIDCClientState_UploadedLogoWithAutoGenerateOffMakesNoCalls(t *test
 		ObjectMeta: metav1.ObjectMeta{Name: "sync-client", Namespace: testNamespace},
 		Spec: pocketidinternalv1alpha1.PocketIDOIDCClientSpec{
 			CallbackURLs: []string{"https://example.com/cb"},
-			Logo:         &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: boolPtr(false)},
+			Logo:         &pocketidinternalv1alpha1.OIDCClientLogoSpec{AutoGenerate: new(false)},
 		},
 		Status: pocketidinternalv1alpha1.PocketIDOIDCClientStatus{
 			ClientID:   "sync-id",
@@ -1150,12 +1136,10 @@ func TestPushOIDCClientState_UploadedLogoWithAutoGenerateOffMakesNoCalls(t *test
 	}
 
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR)
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Errorf("unexpected %s %s: an uploaded logo is not the operator's to manage", r.Method, r.URL.Path)
 		http.Error(w, "unexpected", http.StatusInternalServerError)
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	updated, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current)
 	if err != nil {
@@ -1191,7 +1175,7 @@ func TestPushOIDCClientState_LogoErrorIsNonFatalAndNotRetried(t *testing.T) {
 
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR)
 	var puts int
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Method != http.MethodPut {
 			t.Errorf("unexpected %s %s", req.Method, req.URL.Path)
 			http.Error(w, "unexpected", http.StatusInternalServerError)
@@ -1204,8 +1188,6 @@ func TestPushOIDCClientState_LogoErrorIsNonFatalAndNotRetried(t *testing.T) {
 			"error": "Logo could not be downloaded", "code": "logo_download_failed", "request_id": "req-1",
 		})
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("expected a logo failure to be non-fatal, got %v", err)
@@ -1259,7 +1241,7 @@ func TestPushOIDCClientState_DarkLogoFailureLeavesLightLogoIntact(t *testing.T) 
 
 	r := newPushStateOIDCReconciler(scheme, oidcClientCR)
 	var sent []string // darkLogoUrl of each PUT, so the two updates are distinguishable
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+	apiClient := pocketidtest.NewClient(t, http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		var body map[string]any
 		_ = json.NewDecoder(req.Body).Decode(&body)
 		dark, _ := body["darkLogoUrl"].(string)
@@ -1275,8 +1257,6 @@ func TestPushOIDCClientState_DarkLogoFailureLeavesLightLogoIntact(t *testing.T) 
 			"error": "Logo could not be downloaded", "code": "logo_download_failed",
 		})
 	}))
-	defer ts.Close()
-	apiClient, _ := pocketid.NewClient(ts.URL, "")
 
 	if _, err := r.pushOIDCClientState(ctx, oidcClientCR, apiClient, current); err != nil {
 		t.Fatalf("expected the dark failure to be non-fatal, got %v", err)

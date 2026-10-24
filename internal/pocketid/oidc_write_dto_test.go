@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"reflect"
 	"slices"
 	"strings"
@@ -51,7 +50,7 @@ func captureOIDCClientWrite(t *testing.T, method, path string, write func(*Clien
 	t.Helper()
 
 	var body map[string]any
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client := newTestClient(t, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != method || r.URL.Path != path {
 			http.NotFound(w, r)
 			return
@@ -63,12 +62,6 @@ func captureOIDCClientWrite(t *testing.T, method, path string, write func(*Clien
 		}
 		_ = json.NewEncoder(w).Encode(oidcClientResponse{ID: "test-id", Name: "test-client", AllowedUserGroups: []any{}})
 	}))
-	defer ts.Close()
-
-	client, err := NewClient(ts.URL, "")
-	if err != nil {
-		t.Fatalf("NewClient: %v", err)
-	}
 
 	id := "test-id"
 	input := OIDCClientInput{
@@ -130,8 +123,8 @@ func assertDTOFieldsSet(t *testing.T, dto any, payload map[string]any, prefix st
 	t.Helper()
 
 	typ := reflect.TypeOf(dto)
-	for i := range typ.NumField() {
-		key, _, _ := strings.Cut(typ.Field(i).Tag.Get("json"), ",")
+	for field := range typ.Fields() {
+		key, _, _ := strings.Cut(field.Tag.Get("json"), ",")
 		if key == "" || key == "-" || slices.Contains(readOnly, key) {
 			continue
 		}
