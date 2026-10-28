@@ -2,8 +2,8 @@ apiVersion: v2
 name: pocket-id-operator
 description: A Helm chart to distribute the project pocket-id-operator
 type: application
-version: 0.16.2
-appVersion: v0.16.2
+version: 0.16.2-ticklethepanda.2
+appVersion: 6f6a3b3-main
 dependencies:
   - name: pocket-id-instance
     version: 0.16.2
