@@ -57,6 +57,9 @@ spec:
             {{- end }}
             - --health-probe-bind-address=:8081
             - --leader-elect
+            {{- if not .Values.operator.manageWorkloads }}
+            - --manage-workloads=false
+            {{- end }}
             {{- range .Values.operator.args }}
             - {{ . }}
             {{- end }}

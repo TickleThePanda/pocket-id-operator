@@ -9,7 +9,7 @@ gen=(
   api/v1alpha1/zz_generated.deepcopy.go
   config/crd/bases
   config/rbac/role.yaml
-  charts/pocket-id-operator/templates/rbac/manager-role.yaml
+  charts/pocket-id-operator/files/manager-rules.yaml
   charts/pocket-id-operator/crds
   dist/install.yaml
   dist/crds.yaml

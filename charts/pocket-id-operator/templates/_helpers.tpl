@@ -71,3 +71,33 @@ Only includes name and instance for consistent selection.
 app.kubernetes.io/name: {{ include "chart.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+The operator's RBAC rules: files/manager-rules.yaml, generated from the
+kubebuilder markers, minus the workload kinds when operator.manageWorkloads is
+false.
+*/}}
+{{- define "pocket-id-operator.managerRules" -}}
+{{- $workloads := dict "apps" (list "deployments" "statefulsets") "" (list "services" "persistentvolumeclaims") "gateway.networking.k8s.io" (list "httproutes") }}
+{{- $rules := list }}
+{{- range .Files.Get "files/manager-rules.yaml" | fromYamlArray }}
+{{- $rule := . }}
+{{- if not $.Values.operator.manageWorkloads }}
+{{- $drop := list }}
+{{- range $rule.apiGroups }}
+{{- $drop = concat $drop (get $workloads . | default list) }}
+{{- end }}
+{{- $kept := list }}
+{{- range $rule.resources }}
+{{- if not (has . $drop) }}
+{{- $kept = append $kept . }}
+{{- end }}
+{{- end }}
+{{- $rule = set $rule "resources" $kept }}
+{{- end }}
+{{- if $rule.resources }}
+{{- $rules = append $rules $rule }}
+{{- end }}
+{{- end }}
+{{- toYaml $rules }}
+{{- end }}

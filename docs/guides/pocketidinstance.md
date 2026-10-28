@@ -183,6 +183,8 @@ Configuring `spec.external` allows the operator to manage an instance deployed o
 
 See [example](../examples/pocketidinstance.md#external-instance).
 
+If every instance is external, set the chart value `operator.manageWorkloads: false` (flag `--manage-workloads=false`). The operator then never deploys Pocket-ID, and the chart drops every RBAC rule on Deployments, StatefulSets, Services, PersistentVolumeClaims and HTTPRoutes. An instance without `spec.external` reports `Ready=False` with reason `WorkloadsDisabled`.
+
 ## Generated Resources And Environment
 
 - Service name: `<instance>`, port 1411.

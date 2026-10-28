@@ -9,9 +9,7 @@ rm -rf charts/pocket-id-operator/crds
 mkdir -p charts/pocket-id-operator/crds
 cp config/crd/bases/*.yaml charts/pocket-id-operator/crds/
 
-awk '/^metadata:$/ {
-  print
-  print "  labels:"
-  print "    {{- include \"chart.labels\" . | nindent 4 }}"
-  next
-} 1' config/rbac/role.yaml > charts/pocket-id-operator/templates/rbac/manager-role.yaml
+# The chart renders the generated rules into a ClusterRole or into one Role per
+# watched namespace (templates/rbac/manager-role.yaml), so it takes only the rules.
+awk 'found { print } /^rules:$/ { found = 1 }' config/rbac/role.yaml \
+  > charts/pocket-id-operator/files/manager-rules.yaml

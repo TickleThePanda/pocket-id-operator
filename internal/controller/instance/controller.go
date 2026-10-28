@@ -110,6 +110,10 @@ type Reconciler struct {
 	// pocket-id version. When nil it defaults to os.Exit; tests override it to observe
 	// the halt without killing the test binary.
 	Exit func(code int)
+
+	// DisableWorkloads stops the operator deploying Pocket-ID (--manage-workloads=false).
+	// Only external instances reconcile, so the operator needs no RBAC on workload kinds.
+	DisableWorkloads bool
 }
 
 // halt ends the operator process. Callers must treat it as terminal in production
@@ -163,6 +167,10 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 	// clients/users/groups via the existing instance's API.
 	if instance.Spec.External != nil {
 		return r.reconcileExternal(ctx, instance)
+	}
+
+	if r.DisableWorkloads {
+		return r.reconcileWorkloadsDisabled(ctx, instance)
 	}
 
 	// Ensure static API key secret exists
@@ -253,6 +261,24 @@ func (r *Reconciler) reconcileExternal(ctx context.Context, instance *pocketidin
 	r.haltIfUnsupportedVersion(log, instance, instance.Status.Version)
 
 	return common.ApplyResync(ctrl.Result{}), nil
+}
+
+// reconcileWorkloadsDisabled reports a non-external instance as not Ready when the operator
+// runs with --manage-workloads=false, instead of failing on RBAC it was not granted.
+func (r *Reconciler) reconcileWorkloadsDisabled(ctx context.Context, instance *pocketidinternalv1alpha1.PocketIDInstance) (ctrl.Result, error) {
+	base := instance.DeepCopy()
+	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+		Type:               "Ready",
+		Status:             metav1.ConditionFalse,
+		Reason:             "WorkloadsDisabled",
+		Message:            "The operator runs with --manage-workloads=false, so it only manages instances with spec.external set",
+		ObservedGeneration: instance.Generation,
+	})
+	if err := common.PatchStatus(ctx, r.Client, instance, base); err != nil {
+		return ctrl.Result{}, err
+	}
+	metrics.RecordReadiness("PocketIDInstance", instance.Namespace, instance.Name, false)
+	return ctrl.Result{}, nil
 }
 
 // Helpers
@@ -1175,13 +1201,15 @@ func (r *Reconciler) computeStaticAPIKeyHash(ctx context.Context, instance *pock
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(mgr).
-		For(&pocketidinternalv1alpha1.PocketIDInstance{}, builder.WithPredicates(predicate.GenerationChangedPredicate{})).
-		Owns(&appsv1.Deployment{}).
-		Owns(&appsv1.StatefulSet{}).
-		Owns(&corev1.Service{}).
-		Owns(&corev1.PersistentVolumeClaim{}).
-		Owns(&corev1.Secret{}).
+	b := ctrl.NewControllerManagedBy(mgr).
+		For(&pocketidinternalv1alpha1.PocketIDInstance{}, builder.WithPredicates(predicate.GenerationChangedPredicate{}))
+	if !r.DisableWorkloads {
+		b = b.Owns(&appsv1.Deployment{}).
+			Owns(&appsv1.StatefulSet{}).
+			Owns(&corev1.Service{}).
+			Owns(&corev1.PersistentVolumeClaim{})
+	}
+	return b.Owns(&corev1.Secret{}).
 		Named("pocketidinstance").
 		Complete(r)
 }

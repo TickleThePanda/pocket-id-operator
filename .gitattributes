@@ -6,7 +6,7 @@
 api/v1alpha1/zz_generated.deepcopy.go        linguist-generated=true
 config/crd/bases/*.yaml                       linguist-generated=true
 config/rbac/role.yaml                         linguist-generated=true
-charts/pocket-id-operator/templates/rbac/manager-role.yaml   linguist-generated=true
+charts/pocket-id-operator/files/manager-rules.yaml            linguist-generated=true
 charts/pocket-id-operator/crds/*.yaml                        linguist-generated=true
 
 # kustomize bundle (mise run build-installer)

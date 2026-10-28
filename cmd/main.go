@@ -76,6 +76,7 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var enableHTTP2 bool
+	var manageWorkloads bool
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8080 for HTTP, or leave as 0 to disable the metrics service.")
@@ -88,6 +89,9 @@ func main() {
 	flag.StringVar(&webhookCertKey, "webhook-cert-key", "tls.key", "The name of the webhook key file.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.BoolVar(&manageWorkloads, "manage-workloads", true,
+		"Deploy Pocket-ID for non-external PocketIDInstances. Set to false when every instance is external, "+
+			"so the operator needs no access to Deployments, StatefulSets, Services, PVCs or HTTPRoutes.")
 	opts := zap.Options{
 		Development: true,
 		Level:       zapcore.Level(0), // info by default; use --zap-log-level=debug for V(1)
@@ -180,9 +184,10 @@ func main() {
 	}
 
 	if err := (&instance.Reconciler{
-		Client:    mgr.GetClient(),
-		APIReader: mgr.GetAPIReader(),
-		Scheme:    mgr.GetScheme(),
+		Client:           mgr.GetClient(),
+		APIReader:        mgr.GetAPIReader(),
+		Scheme:           mgr.GetScheme(),
+		DisableWorkloads: !manageWorkloads,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PocketIDInstance")
 		os.Exit(1)

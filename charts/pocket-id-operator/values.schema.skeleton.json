@@ -190,6 +190,11 @@
           },
           "default": []
         },
+        "manageWorkloads": {
+          "type": "boolean",
+          "description": "Deploy Pocket-ID for PocketIDInstances without spec.external. Set to false when every instance is external: the operator then gets no RBAC on Deployments, StatefulSets, Services, PersistentVolumeClaims or HTTPRoutes.",
+          "default": true
+        },
         "env": {
           "type": "array",
           "description": "Additional environment variables for the operator container",
